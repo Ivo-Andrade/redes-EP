@@ -212,6 +212,8 @@ public class UDPdeRoteador
         return null;
     }
 
+    // TODO: TAKE INTO ACCOUNT DIFFERENT RATES BETWEEN DIFFERENT NODES
+
     public void enviePacoteAoCliente ( 
         int idDoCliente,
         byte[] pacoteParaCliente 
