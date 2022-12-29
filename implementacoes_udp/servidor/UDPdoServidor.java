@@ -24,7 +24,7 @@ public class UDPdoServidor
 
     private SortedMap<Integer,String> clientes;
     private SortedMap<Integer,String> mensagensDosCliente;
-    private SortedMap<Integer,SortedMap<Integer,String>> bufferDePacotesRecebidosDosClientes;
+    private SortedMap<Integer,SortedMap<Integer,String>> bufferDeMsgsRecebidasDosClientes;
 
     private int tamanhoDoPacote = 1000;
     private int tamanhoDeJanelaDePacotes = 10;
@@ -78,7 +78,7 @@ public class UDPdoServidor
         this.clientes = new TreeMap<Integer,String>();
 
         this.mensagensDosCliente = new TreeMap<Integer,String>();
-        this.bufferDePacotesRecebidosDosClientes = new TreeMap<Integer,SortedMap<Integer,String>>();
+        this.bufferDeMsgsRecebidasDosClientes = new TreeMap<Integer,SortedMap<Integer,String>>();
 
         this.bufferDePacotes = new LinkedList<DatagramPacket>();
 
@@ -240,6 +240,43 @@ public class UDPdoServidor
             }
         }
         return null;
+    }
+
+    void adicionarMensagemAoBuffer (
+        int idDoCliente,
+        int numDoPacote,
+        String mensagem 
+    )
+    {
+
+        if ( ! this.bufferDeMsgsRecebidasDosClientes.containsKey( idDoCliente ) ) 
+        {
+            SortedMap<Integer,String> listaDeMsgsDosPacotesDoCliente = new TreeMap<>();
+            this.bufferDeMsgsRecebidasDosClientes.put(
+                idDoCliente, 
+                listaDeMsgsDosPacotesDoCliente
+            );
+        }
+
+        SortedMap<Integer,String> listaDeMsgs = this.bufferDeMsgsRecebidasDosClientes.get( idDoCliente );
+        listaDeMsgs.put( numDoPacote, mensagem );
+
+    }
+
+    public void salvarMensagem( int idDoCliente ) 
+    {
+
+        SortedMap<Integer,String> listaDeMsgsDoCliente =
+            this.bufferDeMsgsRecebidasDosClientes.get( idDoCliente );
+
+        StringBuffer bufferDeMsg = new StringBuffer();
+
+        for ( String msg : listaDeMsgsDoCliente.values() ) {
+            bufferDeMsg.append(msg);
+        }
+
+        this.mensagensDosCliente.put( idDoCliente, bufferDeMsg.toString() );
+
     }
 
     void sinalizarTerminoDaTransferencia () 

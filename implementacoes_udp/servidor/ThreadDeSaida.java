@@ -77,14 +77,20 @@ public class ThreadDeSaida
                             + udp.getClientes().get( idDoCliente ) 
                         );
 
-                        // TODO: WRITE FILE FROM CLIENT, MAYBE
+                        udp.salvarMensagem( idDoCliente );
 
                     }
                     else
                     {
 
-                        // TODO: SAVE MSG FROM CLIENT, MAYBE
-                        // using bytesDoPayload
+                        udp.adicionarMensagemAoBuffer (
+                            idDoCliente,
+                            numDoPacote,
+                            udp.getCriptografia()
+                                .decodificarMensagem(
+                                    new String( bytesDoPayload )
+                                )
+                        );
 
                         byte[] pacoteDeACK = 
                             GerenciadorDePacote
