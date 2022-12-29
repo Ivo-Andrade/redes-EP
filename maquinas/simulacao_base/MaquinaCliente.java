@@ -13,7 +13,7 @@ public class MaquinaCliente
         throws Exception
     {
 
-        String mensagem = GeradorDeLoremIpsum.gerarLoremIpsum( 10000000 );
+        String mensagem = GeradorDeLoremIpsum.gerarLoremIpsum( 100000 );
 
         UDPdoCliente udpDoCliente = 
             new UDPdoCliente(
