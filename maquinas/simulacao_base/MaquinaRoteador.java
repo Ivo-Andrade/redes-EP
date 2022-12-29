@@ -42,6 +42,22 @@ public class MaquinaRoteador
 
         udpDoRoteador.setClientes( listaDeClientes );
 
+        SortedMap<Integer,Integer> atrasosDePropagacao = 
+            new TreeMap<>();
+
+        atrasosDePropagacao.put( 0, 0 );
+        atrasosDePropagacao.put( 1, 0 );
+
+        udpDoRoteador.setAtrasoDePropagacao( atrasosDePropagacao );
+
+        SortedMap<Integer,Integer> probabilidadeDePerdas = 
+            new TreeMap<>();
+
+        probabilidadeDePerdas.put( 0, 0 );
+        probabilidadeDePerdas.put( 1, 0 );
+
+        udpDoRoteador.setProbabilidadeDePerda( probabilidadeDePerdas );    
+
         udpDoRoteador.start();
 
     }

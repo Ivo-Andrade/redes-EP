@@ -23,8 +23,8 @@ public class UDPdeRoteador
     private int tamanhoDoPacote = 1000;
     private int tamanhoDeJanelaDePacotes = 10;
 
-    private int atrasoDePropagacao = 0;
-    private int probabilidadeDePerda = 0;
+    private SortedMap<Integer,Integer> atrasoDePropagacaoNoEnvioParaMaquinas;
+    private SortedMap<Integer,Integer> probabilidadeDePerdaNoEnvioParaMaquinas;
 
     private LinkedList<DatagramPacket> bufferDePacotes;
 
@@ -58,6 +58,9 @@ public class UDPdeRoteador
             );
 
         this.clientes = new TreeMap<Integer,EnderecoDeMaquina>();
+
+        this.atrasoDePropagacaoNoEnvioParaMaquinas = new TreeMap<Integer,Integer>();
+        this.probabilidadeDePerdaNoEnvioParaMaquinas = new TreeMap<Integer,Integer>();
 
         this.bufferDePacotes = new LinkedList<DatagramPacket>();
 
@@ -99,19 +102,19 @@ public class UDPdeRoteador
         }        
     }
 
-    public void setAtrasoDePropagacao ( Integer atrasoDePropagacao )
+    public void setAtrasoDePropagacao ( SortedMap<Integer,Integer> atrasoDePropagacao )
     {
         if ( atrasoDePropagacao != null )
         {
-            this.atrasoDePropagacao = atrasoDePropagacao;
+            this.atrasoDePropagacaoNoEnvioParaMaquinas = atrasoDePropagacao;
         }
     }
 
-    public void setProbabilidadeDePerda ( Integer probabilidadeDePerda )
+    public void setProbabilidadeDePerda ( SortedMap<Integer,Integer> probabilidadeDePerda )
     {
         if ( probabilidadeDePerda != null )
         {
-            this.probabilidadeDePerda = probabilidadeDePerda;
+            this.probabilidadeDePerdaNoEnvioParaMaquinas = probabilidadeDePerda;
         }
     }
 
@@ -165,16 +168,6 @@ public class UDPdeRoteador
     {
         return this.tamanhoDeJanelaDePacotes;
     }
-
-    int getAtrasoDePropagacao () 
-    {
-        return this.atrasoDePropagacao;
-    }
-
-    int getProbabilidadeDePerda () 
-    {
-        return this.probabilidadeDePerda;
-    }
     
     /**
      * 
@@ -212,8 +205,6 @@ public class UDPdeRoteador
         return null;
     }
 
-    // TODO: TAKE INTO ACCOUNT DIFFERENT RATES BETWEEN DIFFERENT NODES
-
     public void enviePacoteAoCliente ( 
         int idDoCliente,
         byte[] pacoteParaCliente 
@@ -231,7 +222,7 @@ public class UDPdeRoteador
                 cliente.getPorta()
             );
 
-        enviarPacote( pacoteDeEnvio, pacoteParaCliente.length );
+        enviarPacote( idDoCliente, pacoteDeEnvio, pacoteParaCliente.length );
 
     }
 
@@ -247,24 +238,28 @@ public class UDPdeRoteador
                 this.servidor.getPorta()
             );
 
-        enviarPacote( pacoteDeEnvio, pacoteParaServidor.length );
+        enviarPacote( 0, pacoteDeEnvio, pacoteParaServidor.length );
 
     }
 
-    void enviarPacote ( DatagramPacket pacoteDeEnvio, int length )
+    void enviarPacote (
+        int idMaquina,
+        DatagramPacket pacoteDeEnvio, 
+        int length 
+    )
         throws Exception
     {
 
-        if ( this.atrasoDePropagacao > 0 ) 
+        if ( this.atrasoDePropagacaoNoEnvioParaMaquinas.get( idMaquina ) > 0 ) 
         {
             sleep( 
-                this.atrasoDePropagacao
+                this.atrasoDePropagacaoNoEnvioParaMaquinas.get( idMaquina )
                 * length
             );
         }
 
         if( 
-            Math.random() < ( 1 - this.probabilidadeDePerda )
+            Math.random() < ( 1 - this.probabilidadeDePerdaNoEnvioParaMaquinas.get( idMaquina ) )
         )
         {
             this.socket.send( pacoteDeEnvio );
