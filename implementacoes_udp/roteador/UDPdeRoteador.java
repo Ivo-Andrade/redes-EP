@@ -20,7 +20,7 @@ public class UDPdeRoteador
     private final SortedMap<Integer,EnderecoDeMaquina> clientes;
 
     private int tamanhoDoPacote;
-    private int tamanhoDeJanelaDePacotes;
+    private int tamanhoDaFilaDePacotes;
 
     private final SortedMap<Integer,Integer> atrasosDePropagacao;
     private final SortedMap<Integer,Integer> atrasosDeTransmissao;
@@ -56,7 +56,7 @@ public class UDPdeRoteador
         );
 
         this.tamanhoDoPacote = 1000;
-        this.tamanhoDeJanelaDePacotes = 10;
+        this.tamanhoDaFilaDePacotes = 10;
 
         this.servidor = servidor;
         this.clientes = clientes;
@@ -80,9 +80,9 @@ public class UDPdeRoteador
         this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setTamanhoDeJanela ( int tamanhoDeJanela )
+    public void setTamanhoDaFilaDePacotes ( int tamanhoDeJanela )
     {
-        this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
+        this.tamanhoDaFilaDePacotes = tamanhoDeJanela;
     }
 
     /**
@@ -130,11 +130,6 @@ public class UDPdeRoteador
     {
         return this.tamanhoDoPacote;
     }
-
-    int getTamanhoDeJanelaDePacotes () 
-    {
-        return this.tamanhoDeJanelaDePacotes;
-    }
     
     /**
      * 
@@ -149,7 +144,7 @@ public class UDPdeRoteador
 
     public void adicionarPacoteAoBuffer( DatagramPacket pacote ) 
     {
-        if ( this.bufferDePacotes.size() < tamanhoDeJanelaDePacotes )
+        if ( this.bufferDePacotes.size() < this.tamanhoDaFilaDePacotes )
         {
             this.bufferDePacotes.add( pacote );
         }

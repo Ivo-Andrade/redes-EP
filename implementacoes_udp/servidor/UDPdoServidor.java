@@ -27,7 +27,8 @@ public class UDPdoServidor
     private SortedMap<Integer,SortedMap<Integer,String>> bufferDeMsgsRecebidasDosClientes;
 
     private int tamanhoDoPacote;
-    private int tamanhoDeJanelaDePacotes;
+    private int tamanhoDoBufferDeRecepcao;
+    private int atrasoDeRecepcao;
     
     private int atrasoDePropagacao;
     private int atrasoDeTransmissao;
@@ -71,7 +72,7 @@ public class UDPdoServidor
         this.roteador = roteador;
 
         this.tamanhoDoPacote = 1000;
-        this.tamanhoDeJanelaDePacotes = 10;
+        this.tamanhoDoBufferDeRecepcao = 10;
 
         this.atrasoDePropagacao = 0;
         this.atrasoDeTransmissao = 0;
@@ -100,9 +101,14 @@ public class UDPdoServidor
         this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setTamanhoDeJanelaDePacotes ( int tamanhoDeJanelaDePacotes )
+    public void setTamanhoDoBufferDeRecepcao ( int tamanhoDeJanelaDePacotes )
     {
-        this.tamanhoDeJanelaDePacotes = tamanhoDeJanelaDePacotes;
+        this.tamanhoDoBufferDeRecepcao = tamanhoDeJanelaDePacotes;
+    }
+
+    public void setAtrasoDeRecepcao ( int atrasoDeRecepcao )
+    {
+        this.atrasoDeRecepcao = atrasoDeRecepcao;
     }
 
     public void setAtrasoDePropagacao ( int atrasoDePropagacao )
@@ -161,9 +167,9 @@ public class UDPdoServidor
         return this.tamanhoDoPacote;
     }
 
-    int getTamanhoDeJanelaDePacotes () 
+    int getTamanhoDoBufferDeRecepcao () 
     {
-        return this.tamanhoDeJanelaDePacotes;
+        return this.tamanhoDoBufferDeRecepcao;
     }
 
     int getAtrasoDeTransmissao () 
@@ -202,10 +208,16 @@ public class UDPdoServidor
      * 
      */
 
-    public void adicionarPacoteAoBuffer( DatagramPacket pacote ) 
+    public void adicionarPacoteAoBuffer( DatagramPacket pacote )
+        throws Exception
     {
-        if ( this.bufferDePacotes.size() < tamanhoDeJanelaDePacotes )
+        if ( this.bufferDePacotes.size() < tamanhoDoBufferDeRecepcao )
         {
+
+            if ( this.atrasoDeRecepcao > 0 )
+            {
+                sleep( this.atrasoDeRecepcao );
+            }
             this.bufferDePacotes.add( pacote );
         }
     }

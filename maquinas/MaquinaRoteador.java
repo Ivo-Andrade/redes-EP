@@ -1,4 +1,4 @@
-package maquinas.simulacao_base;
+package maquinas;
 
 import java.util.SortedMap;
 
@@ -15,6 +15,9 @@ public class MaquinaRoteador
     private final SortedMap<Integer,Integer> atrasosDeTransmissao;
     private final SortedMap<Integer,Integer> probabilidadeDePerdas;
 
+    private int tamanhoDoPacote;
+    private int tamanhoDaFilaDePacotes;
+
     public MaquinaRoteador (
         EnderecoDeMaquina servidor,
         EnderecoDeMaquina roteador,
@@ -30,6 +33,19 @@ public class MaquinaRoteador
         this.atrasosDePropagacao = atrasosDePropagacao;
         this.atrasosDeTransmissao = atrasosDeTransmissao;
         this.probabilidadeDePerdas = atrasosDeTransmissao;
+
+        this.tamanhoDoPacote = -1;
+        this.tamanhoDaFilaDePacotes = -1;
+    }
+
+    public void setTamanhoDoPacote ( int tamanhoDoPacote )
+    {
+        this.tamanhoDoPacote = tamanhoDoPacote;
+    }
+
+    public void setTamanhoDaFilaDePacotes ( int tamanhoDeJanela )
+    {
+        this.tamanhoDaFilaDePacotes = tamanhoDeJanela;
     }
     
     public void run ()
@@ -45,7 +61,17 @@ public class MaquinaRoteador
                 atrasosDePropagacao,
                 atrasosDeTransmissao,
                 probabilidadeDePerdas
-            ); 
+            );
+
+        if ( this.tamanhoDoPacote > -1 )
+        {
+            udpDoRoteador.setTamanhoDoPacote( this.tamanhoDoPacote );
+        }
+
+        if ( this.tamanhoDaFilaDePacotes > -1 )
+        {
+            udpDoRoteador.setTamanhoDaFilaDePacotes( this.tamanhoDaFilaDePacotes );
+        }
 
         udpDoRoteador.start();
 

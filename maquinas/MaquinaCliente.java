@@ -1,4 +1,4 @@
-package maquinas.simulacao_base;
+package maquinas;
 
 import implementacoes_udp.cliente.UDPdoCliente;
 import lorem_ipsum.GeradorDeLoremIpsum;

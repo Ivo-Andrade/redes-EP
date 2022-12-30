@@ -4,9 +4,9 @@ import java.net.InetAddress;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import maquinas.simulacao_base.MaquinaCliente;
-import maquinas.simulacao_base.MaquinaRoteador;
-import maquinas.simulacao_base.MaquinaServidor;
+import maquinas.MaquinaCliente;
+import maquinas.MaquinaRoteador;
+import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
 public class SimulacaoBase 
@@ -15,6 +15,13 @@ public class SimulacaoBase
     public static void main ( String[] args )
         throws Exception
     {
+
+        // Definições gerais de váriaveis
+
+        int tamanhoDoPacote = 1000;
+        int tamanhoDaFilaDePacotesNoRoteador = Integer.MAX_VALUE ;
+        int tamanhoDoBufferDeRecepcaoNoServidor = Integer.MAX_VALUE;
+        int atrasoDeRecepcaoNoServidor = 0;
 
         // Definição de endereços
 
@@ -54,8 +61,8 @@ public class SimulacaoBase
         atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Integer> probabilidadesDePerda = new TreeMap<>();
-        atrasosDeTransmissao.put( 0, 0 );
-        atrasosDeTransmissao.put( 1, 0 );
+        probabilidadesDePerda.put( 0, 0 );
+        probabilidadesDePerda.put( 1, 0 );
 
         // Definição de máquinas
         
@@ -65,6 +72,10 @@ public class SimulacaoBase
                 roteador,
                 clientes
             );
+
+        maquinaServidor.setTamanhoDoPacote( tamanhoDoPacote );
+        maquinaServidor.setTamanhoDoBufferDeRecepcao( tamanhoDoBufferDeRecepcaoNoServidor );
+        maquinaServidor.setAtrasoDeRecepcao( atrasoDeRecepcaoNoServidor );
 
         maquinaServidor.setAtrasoDePropagacao( atrasosDePropagacao.get( 0 ));
         maquinaServidor.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 0 ));
@@ -83,6 +94,9 @@ public class SimulacaoBase
                 atrasosDeTransmissao,
                 probabilidadesDePerda
             );
+
+        maquinaRoteador.setTamanhoDoPacote( tamanhoDoPacote );
+        maquinaRoteador.setTamanhoDaFilaDePacotes( tamanhoDaFilaDePacotesNoRoteador );
 
         maquinaRoteador.run();
 
