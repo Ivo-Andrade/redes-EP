@@ -1,7 +1,5 @@
 package maquinas.simulacao_base;
 
-import java.net.InetAddress;
-
 import implementacoes_udp.cliente.UDPdoCliente;
 import lorem_ipsum.GeradorDeLoremIpsum;
 import modelos.EnderecoDeMaquina;
@@ -16,6 +14,10 @@ public class MaquinaCliente
 
     private final int bytesDaMensagem;
 
+    private int atrasoDePropagacao;
+    private int atrasoDeTransmissao;
+    private int probabilidadeDePerda;
+
     public MaquinaCliente (
         int idDeCliente,
         EnderecoDeMaquina cliente,
@@ -27,6 +29,25 @@ public class MaquinaCliente
         this.cliente = cliente;
         this.roteador = roteador;
         this.bytesDaMensagem = bytes;
+
+        this.atrasoDePropagacao = 0;
+        this.atrasoDeTransmissao = 0;
+        this.probabilidadeDePerda = 0;
+    }
+
+    public void setAtrasoDePropagacao ( int atrasoDePropagacao ) 
+    {
+        this.atrasoDePropagacao = atrasoDePropagacao;
+    }
+
+    public void setAtrasoDeTransmissao( int atrasoDeTransmissao ) 
+    {
+        this.atrasoDeTransmissao = atrasoDeTransmissao;
+    }
+
+    public void setProbabilidadeDePerda( int probabilidadeDePerda ) 
+    {
+        this.probabilidadeDePerda = probabilidadeDePerda;
     }
     
     public void run ()
@@ -40,10 +61,13 @@ public class MaquinaCliente
                 idDeCliente,
                 cliente.getNome(),
                 cliente.getPorta(),
-                mensagem
+                mensagem,
+                roteador
             );
-        
-        udpDoCliente.setRoteador( roteador );
+
+        udpDoCliente.setAtrasoDePropagacao( this.atrasoDePropagacao );
+        udpDoCliente.setAtrasoDeTransmissao( this.atrasoDeTransmissao );
+        udpDoCliente.setProbabilidadeDePerda( this.probabilidadeDePerda );
 
         udpDoCliente.start();
 

@@ -9,10 +9,15 @@ public class ThreadDeEntrada
 {
 
     private final UDPdoServidor udp;
+    private final int atrasoDePropagacao;
 
-    public ThreadDeEntrada ( UDPdoServidor udp ) 
+    public ThreadDeEntrada ( 
+        UDPdoServidor udp, 
+        int atrasoDePropagacao
+    ) 
     { 
         this.udp = udp;
+        this.atrasoDePropagacao = atrasoDePropagacao;
     }
 
     public void run ()
@@ -20,13 +25,19 @@ public class ThreadDeEntrada
 
         try {
 
-            while ( true ) {
+            while ( true ) 
+            {
                 
                 byte[] dadosDeEntrada = new byte[ udp.getTamanhoDoPacote() * 2 ];
                 DatagramPacket pacoteDeEntrada = 
                     new DatagramPacket( dadosDeEntrada, dadosDeEntrada.length );
 
                 udp.getSocket().receive( pacoteDeEntrada );
+
+                if ( this.atrasoDePropagacao > 0 )
+                {
+                    sleep( this.atrasoDePropagacao );
+                }
                 
                 if ( GerenciadorDePacote.verificarPacote( dadosDeEntrada, pacoteDeEntrada.getLength() ) )
                 {
@@ -35,7 +46,8 @@ public class ThreadDeEntrada
 
             }
 
-        } catch ( Exception e ) {
+        } catch ( Exception e ) 
+        {
             e.printStackTrace();
             System.exit(-1);
         }

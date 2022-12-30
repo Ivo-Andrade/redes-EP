@@ -11,6 +11,10 @@ public class MaquinaServidor
     private final EnderecoDeMaquina servidor;
     private final EnderecoDeMaquina roteador;
     private final SortedMap<Integer,EnderecoDeMaquina> clientes;
+    
+    private int atrasoDePropagacao;
+    private int atrasoDeTransmissao;
+    private int probabilidadeDePerda;
 
     public MaquinaServidor (
         EnderecoDeMaquina servidor,
@@ -21,6 +25,25 @@ public class MaquinaServidor
         this.servidor = servidor;
         this.roteador = roteador;
         this.clientes = clientes;
+
+        this.atrasoDePropagacao = 0;
+        this.atrasoDeTransmissao = 0;
+        this.probabilidadeDePerda = 0;
+    }
+
+    public void setAtrasoDePropagacao( int atrasoDePropagacao ) 
+    {
+        this.atrasoDePropagacao = atrasoDePropagacao;
+    }
+
+    public void setAtrasoDeTransmissao( int atrasoDeTransmissao ) 
+    {
+        this.atrasoDeTransmissao = atrasoDeTransmissao;
+    }
+
+    public void setProbabilidadeDePerda( int probabilidadeDePerda ) 
+    {
+        this.probabilidadeDePerda = probabilidadeDePerda;
     }
     
     public void run ()
@@ -30,18 +53,14 @@ public class MaquinaServidor
         UDPdoServidor udpDoServidor = 
             new UDPdoServidor(
                 servidor.getNome(),
-                servidor.getPorta()
+                servidor.getPorta(),
+                roteador,
+                clientes
             );
-        
-        udpDoServidor.setRoteador(
-            new EnderecoDeMaquina(
-                roteador.getNome(),
-                roteador.getEnderecoIP(),
-                roteador.getPorta()
-            )
-        );
 
-        udpDoServidor.setClientes( this.clientes );
+        udpDoServidor.setAtrasoDePropagacao( this.atrasoDePropagacao );
+        udpDoServidor.setAtrasoDeTransmissao( this.atrasoDeTransmissao );
+        udpDoServidor.setProbabilidadeDePerda( this.probabilidadeDePerda );
 
         udpDoServidor.start();
         

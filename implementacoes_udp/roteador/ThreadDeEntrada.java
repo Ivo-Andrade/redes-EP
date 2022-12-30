@@ -1,6 +1,7 @@
 package implementacoes_udp.roteador;
 
 import java.net.DatagramPacket;
+import java.util.SortedMap;
 
 import pacotes.GerenciadorDePacote;
 
@@ -9,10 +10,15 @@ public class ThreadDeEntrada
 {
 
     private final UDPdeRoteador udp;
+    private final SortedMap<Integer, Integer> atrasosDePropagacao;
 
-    public ThreadDeEntrada ( UDPdeRoteador udp )
+    public ThreadDeEntrada ( 
+        UDPdeRoteador udp, 
+        SortedMap<Integer, Integer> atrasosDePropagacao 
+    )
     {
         this.udp = udp;
+        this.atrasosDePropagacao = atrasosDePropagacao;
     }
 
     public void run () 
@@ -20,7 +26,8 @@ public class ThreadDeEntrada
 
         try {
 
-            while ( true ) {
+            while ( true ) 
+            {
 
                 byte[] dadosDeEntrada = new byte[ udp.getTamanhoDoPacote() ];
                 DatagramPacket pacoteDeEntrada = 
@@ -30,12 +37,22 @@ public class ThreadDeEntrada
                 
                 if ( GerenciadorDePacote.verificarPacote( dadosDeEntrada, pacoteDeEntrada.getLength() ) )
                 {
+
+                    int idDoRemetente = GerenciadorDePacote.decodificarIdDoRemetente( dadosDeEntrada );
+
+                    if ( this.atrasosDePropagacao.get( idDoRemetente ) > 0 )
+                    {
+                        sleep( this.atrasosDePropagacao.get( idDoRemetente ) );
+                    }
+
+
                     udp.adicionarPacoteAoBuffer( pacoteDeEntrada );
                 }
 
             }
 
-        } catch ( Exception e ) {
+        } catch ( Exception e ) 
+        {
             e.printStackTrace();
             System.exit(-1);
         }

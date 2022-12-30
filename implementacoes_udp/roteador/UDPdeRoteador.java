@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import modelos.EnderecoDeMaquina;
 
@@ -17,14 +16,15 @@ public class UDPdeRoteador
     private DatagramSocket socket;
 
     private final EnderecoDeMaquina roteador;
-    private EnderecoDeMaquina servidor;
-    private SortedMap<Integer,EnderecoDeMaquina> clientes;
+    private final EnderecoDeMaquina servidor;
+    private final SortedMap<Integer,EnderecoDeMaquina> clientes;
 
-    private int tamanhoDoPacote = 1000;
-    private int tamanhoDeJanelaDePacotes = 10;
+    private int tamanhoDoPacote;
+    private int tamanhoDeJanelaDePacotes;
 
-    private SortedMap<Integer,Integer> atrasoDePropagacaoNoEnvioParaMaquinas;
-    private SortedMap<Integer,Integer> probabilidadeDePerdaNoEnvioParaMaquinas;
+    private final SortedMap<Integer,Integer> atrasosDePropagacao;
+    private final SortedMap<Integer,Integer> atrasosDeTransmissao;
+    private final SortedMap<Integer,Integer> probabilidadesDePerda;
 
     private LinkedList<DatagramPacket> bufferDePacotes;
 
@@ -39,7 +39,12 @@ public class UDPdeRoteador
 
     public UDPdeRoteador (
         String denominacao,
-        int portaDoRoteador
+        int portaDoRoteador,
+        EnderecoDeMaquina servidor,
+        SortedMap<Integer,EnderecoDeMaquina> clientes,
+        SortedMap<Integer,Integer> atrasosDePropagacao,
+        SortedMap<Integer,Integer> atrasosDeTransmissao,
+        SortedMap<Integer,Integer> probabilidadesDePerda
     )
         throws Exception
     {
@@ -50,17 +55,15 @@ public class UDPdeRoteador
             portaDoRoteador
         );
 
-        this.servidor = 
-            new EnderecoDeMaquina(
-                "simulacao_base-Servidor", 
-                InetAddress.getLocalHost(), 
-                9999
-            );
+        this.tamanhoDoPacote = 1000;
+        this.tamanhoDeJanelaDePacotes = 10;
 
-        this.clientes = new TreeMap<Integer,EnderecoDeMaquina>();
+        this.servidor = servidor;
+        this.clientes = clientes;
 
-        this.atrasoDePropagacaoNoEnvioParaMaquinas = new TreeMap<Integer,Integer>();
-        this.probabilidadeDePerdaNoEnvioParaMaquinas = new TreeMap<Integer,Integer>();
+        this.atrasosDePropagacao = atrasosDePropagacao;
+        this.atrasosDeTransmissao = atrasosDeTransmissao;
+        this.probabilidadesDePerda = probabilidadesDePerda;
 
         this.bufferDePacotes = new LinkedList<DatagramPacket>();
 
@@ -72,50 +75,14 @@ public class UDPdeRoteador
      * 
      */
 
-    public void setClientes (
-        SortedMap<Integer,EnderecoDeMaquina> listaClientes
-    )
+    public void setTamanhoDoPacote ( int tamanhoDoPacote )
     {
-        this.clientes = listaClientes;
+        this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setServidor ( 
-        EnderecoDeMaquina enderecoDeMaquina
-    )
+    public void setTamanhoDeJanela ( int tamanhoDeJanela )
     {
-        this.servidor = enderecoDeMaquina;
-    }
-
-    public void setTamanhoDoPacote ( Integer tamanhoDoPacote )
-    {
-        if ( tamanhoDoPacote != null )
-        {
-            this.tamanhoDoPacote = tamanhoDoPacote;
-        }
-    }
-
-    public void setTamanhoDeJanela ( Integer tamanhoDeJanela )
-    {
-        if ( tamanhoDeJanela != null )
-        {
-            this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
-        }        
-    }
-
-    public void setAtrasoDePropagacao ( SortedMap<Integer,Integer> atrasoDePropagacao )
-    {
-        if ( atrasoDePropagacao != null )
-        {
-            this.atrasoDePropagacaoNoEnvioParaMaquinas = atrasoDePropagacao;
-        }
-    }
-
-    public void setProbabilidadeDePerda ( SortedMap<Integer,Integer> probabilidadeDePerda )
-    {
-        if ( probabilidadeDePerda != null )
-        {
-            this.probabilidadeDePerdaNoEnvioParaMaquinas = probabilidadeDePerda;
-        }
+        this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
     }
 
     /**
@@ -250,16 +217,16 @@ public class UDPdeRoteador
         throws Exception
     {
 
-        if ( this.atrasoDePropagacaoNoEnvioParaMaquinas.get( idMaquina ) > 0 ) 
+        if ( this.atrasosDeTransmissao.get( idMaquina ) > 0 ) 
         {
             sleep( 
-                this.atrasoDePropagacaoNoEnvioParaMaquinas.get( idMaquina )
+                this.atrasosDeTransmissao.get( idMaquina )
                 * length
             );
         }
 
         if( 
-            Math.random() < ( 1 - this.probabilidadeDePerdaNoEnvioParaMaquinas.get( idMaquina ) )
+            Math.random() < ( 1 - this.probabilidadesDePerda.get( idMaquina ) )
         )
         {
             this.socket.send( pacoteDeEnvio );
@@ -275,7 +242,7 @@ public class UDPdeRoteador
             this.socket = new DatagramSocket( this.roteador.getPorta() );
                 
             this.threadDeSaida = new ThreadDeSaida( this );
-            this.threadDeEntrada = new ThreadDeEntrada( this );
+            this.threadDeEntrada = new ThreadDeEntrada( this, this.atrasosDePropagacao );
     
             this.threadDeSaida.start();
             this.threadDeEntrada.start();
@@ -283,7 +250,8 @@ public class UDPdeRoteador
             System.out.println( this.roteador.getNome() + ": Em funcionamento..." );
 
         } 
-        catch ( Exception e ) {
+        catch ( Exception e ) 
+        {
             
             e.printStackTrace();
             System.exit( -1 );

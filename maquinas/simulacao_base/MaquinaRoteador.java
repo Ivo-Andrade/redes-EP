@@ -1,7 +1,6 @@
 package maquinas.simulacao_base;
 
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import implementacoes_udp.roteador.UDPdeRoteador;
 import modelos.EnderecoDeMaquina;
@@ -12,16 +11,25 @@ public class MaquinaRoteador
     private final EnderecoDeMaquina servidor;
     private final EnderecoDeMaquina roteador;
     private final SortedMap<Integer,EnderecoDeMaquina> clientes;
+    private final SortedMap<Integer,Integer> atrasosDePropagacao;
+    private final SortedMap<Integer,Integer> atrasosDeTransmissao;
+    private final SortedMap<Integer,Integer> probabilidadeDePerdas;
 
     public MaquinaRoteador (
         EnderecoDeMaquina servidor,
         EnderecoDeMaquina roteador,
-        SortedMap<Integer,EnderecoDeMaquina> clientes
+        SortedMap<Integer,EnderecoDeMaquina> clientes,
+        SortedMap<Integer,Integer> atrasosDePropagacao,
+        SortedMap<Integer,Integer> atrasosDeTransmissao, 
+        SortedMap<Integer, Integer> probabilidadesDePerda
     )
     {
         this.servidor = servidor;
         this.roteador = roteador;
         this.clientes = clientes;
+        this.atrasosDePropagacao = atrasosDePropagacao;
+        this.atrasosDeTransmissao = atrasosDeTransmissao;
+        this.probabilidadeDePerdas = atrasosDeTransmissao;
     }
     
     public void run ()
@@ -31,34 +39,13 @@ public class MaquinaRoteador
         UDPdeRoteador udpDoRoteador = 
             new UDPdeRoteador(
                 roteador.getNome(),
-                roteador.getPorta()
-            );
-        
-        udpDoRoteador.setServidor(
-            new EnderecoDeMaquina(
-                servidor.getNome(),
-                servidor.getEnderecoIP(),
-                servidor.getPorta()
-            )
-        );
-
-        udpDoRoteador.setClientes( clientes );
-
-        SortedMap<Integer,Integer> atrasosDePropagacao = 
-            new TreeMap<>();
-
-        atrasosDePropagacao.put( 0, 0 );
-        atrasosDePropagacao.put( 1, 0 );
-
-        udpDoRoteador.setAtrasoDePropagacao( atrasosDePropagacao );
-
-        SortedMap<Integer,Integer> probabilidadeDePerdas = 
-            new TreeMap<>();
-
-        probabilidadeDePerdas.put( 0, 0 );
-        probabilidadeDePerdas.put( 1, 0 );
-
-        udpDoRoteador.setProbabilidadeDePerda( probabilidadeDePerdas );    
+                roteador.getPorta(),
+                servidor,
+                clientes,
+                atrasosDePropagacao,
+                atrasosDeTransmissao,
+                probabilidadeDePerdas
+            ); 
 
         udpDoRoteador.start();
 

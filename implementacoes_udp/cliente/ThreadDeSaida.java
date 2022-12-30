@@ -1,9 +1,9 @@
 package implementacoes_udp.cliente;
 
-import java.io.BufferedWriter;
+// import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
+// import java.io.File;
+// import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.Arrays;
 

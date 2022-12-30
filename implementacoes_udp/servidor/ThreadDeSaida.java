@@ -23,7 +23,8 @@ public class ThreadDeSaida
 
         try {
 
-            while ( true ) {
+            while ( true ) 
+            {
 
                 DatagramPacket pacote = udp.removerPacoteDoBuffer();
 
@@ -116,7 +117,8 @@ public class ThreadDeSaida
 
             }
             
-        } catch ( Exception e ) {
+        } catch ( Exception e ) 
+        {
             e.printStackTrace();
             System.exit(-1);
         }

@@ -9,12 +9,15 @@ public class ThreadDeEntrada
 {
 
     private final UDPdoCliente udp;
+    private final int atrasoDePropagacao;
 
     public ThreadDeEntrada (
-        UDPdoCliente udp
+        UDPdoCliente udp,
+        int atrasoDePropagacao
     ) 
     {
         this.udp = udp;
+        this.atrasoDePropagacao = atrasoDePropagacao;
     }
 
     public void run () 
@@ -31,6 +34,11 @@ public class ThreadDeEntrada
             {
 
                 udp.getSocket().receive( pacoteDeEntrada );
+
+                if ( this.atrasoDePropagacao > 0 ) 
+                {
+                    sleep( this.atrasoDePropagacao );
+                }
                 
                 int numDeACK = 
                     GerenciadorDePacote.decodificarNumDoPacote( dadosDeEntrada );

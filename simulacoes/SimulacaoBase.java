@@ -1,9 +1,6 @@
 package simulacoes;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -19,7 +16,7 @@ public class SimulacaoBase
         throws Exception
     {
 
-        // Definifição de endereços
+        // Definição de endereços
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
@@ -46,7 +43,21 @@ public class SimulacaoBase
         SortedMap<Integer,EnderecoDeMaquina> clientes = new TreeMap<>();
         clientes.put( 1, cliente );
 
-        // Definifição de máquinas
+        // Definição de variáveis
+
+        SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
+        atrasosDePropagacao.put( 0, 0 );
+        atrasosDePropagacao.put( 1, 0 );
+
+        SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
+        atrasosDeTransmissao.put( 0, 0 );
+        atrasosDeTransmissao.put( 1, 0 );
+
+        SortedMap<Integer,Integer> probabilidadesDePerda = new TreeMap<>();
+        atrasosDeTransmissao.put( 0, 0 );
+        atrasosDeTransmissao.put( 1, 0 );
+
+        // Definição de máquinas
         
         MaquinaServidor maquinaServidor = 
             new MaquinaServidor(
@@ -54,6 +65,11 @@ public class SimulacaoBase
                 roteador,
                 clientes
             );
+
+        maquinaServidor.setAtrasoDePropagacao( atrasosDePropagacao.get( 0 ));
+        maquinaServidor.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 0 ));
+        maquinaServidor.setProbabilidadeDePerda( probabilidadesDePerda.get( 0 ) );
+
         maquinaServidor.run();
 
         Thread.sleep( 1000 );
@@ -62,8 +78,12 @@ public class SimulacaoBase
             new MaquinaRoteador(
                 servidor,
                 roteador,
-                clientes
+                clientes,
+                atrasosDePropagacao,
+                atrasosDeTransmissao,
+                probabilidadesDePerda
             );
+
         maquinaRoteador.run();
 
         Thread.sleep( 1000 );
@@ -75,6 +95,11 @@ public class SimulacaoBase
                 roteador,
                 1000000
             );
+
+        maquinaCliente.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
+        maquinaCliente.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 1 ) );
+        maquinaCliente.setProbabilidadeDePerda( probabilidadesDePerda.get( 1 ) );
+
         maquinaCliente.run();
 
     }

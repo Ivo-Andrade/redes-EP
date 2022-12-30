@@ -20,17 +20,18 @@ public class UDPdoCliente
     private final String mensagemDeEnvio;
 
     private final EnderecoDeMaquina cliente;
-    private EnderecoDeMaquina roteador;
+    private final EnderecoDeMaquina roteador;
 
     private DatagramSocket socket;
     
-    private int tamanhoDoPacote = 1000;
-    private int tamanhoDeJanelaDePacotes = 10;
+    private int tamanhoDoPacote;
+    private int tamanhoDeJanelaDePacotes;
+    
+    private int atrasoDePropagacao;
+    private int atrasoDeTransmissao;
+    private int probabilidadeDePerda;
 
-    private int atrasoDePropagacao = 0;
-    private int probabilidadeDePerda = 0;
-
-    private int tempoDeTimeoutDePacote = 300000;
+    private int tempoDeTimeoutDePacote;
     
     private Semaphore semaforoDasVarsDeJanela;
     private int baseDeEnvio;
@@ -58,7 +59,8 @@ public class UDPdoCliente
         int idDeCliente,
         String denominacao,
         int portaCliente,
-        String mensagemDeEnvio
+        String mensagemDeEnvio,
+        EnderecoDeMaquina roteador        
     )
         throws Exception
     {
@@ -73,12 +75,24 @@ public class UDPdoCliente
             InetAddress.getLocalHost(),
             portaCliente 
         );
+        
+        this.tamanhoDoPacote = 1000;
+        this.tamanhoDeJanelaDePacotes = 10;
+    
+        this.atrasoDePropagacao = 0;
+        this.atrasoDeTransmissao = 0;
+        this.probabilidadeDePerda = 0;
+
+        this.tempoDeTimeoutDePacote = 300000;
+
+        this.roteador = roteador;
 
         this.baseDeEnvio = 0;
         this.proxNumDaSequenciaDePacotes = 0;
 
         this.listaDeACKdePacotes = new TreeMap<Integer,Boolean>();
-        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDePacotes; i++ ) {
+        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDePacotes; i++ ) 
+        {
             this.listaDeACKdePacotes.put( i, false );
         }
 
@@ -98,51 +112,35 @@ public class UDPdoCliente
      * 
      */
 
-     public void setRoteador ( 
-        EnderecoDeMaquina destinatario
-    )
+    public void setTamanhoDoPacote ( int tamanhoDoPacote )
     {
-        this.roteador = destinatario;
+        this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setTamanhoDoPacote ( Integer tamanhoDoPacote )
+    public void setTamanhoDeJanela ( int tamanhoDeJanela )
     {
-        if ( tamanhoDoPacote != null )
-        {
-            this.tamanhoDoPacote = tamanhoDoPacote;
-        }
+        this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
     }
 
-    public void setTamanhoDeJanela ( Integer tamanhoDeJanela )
+    public void setTempoDeTimeout ( int tempoDeTimeout )
     {
-        if ( tamanhoDeJanela != null )
-        {
-            this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
-        }        
+        this.tempoDeTimeoutDePacote = tempoDeTimeout;
+    }
+    
+
+    public void setAtrasoDePropagacao( int atrasoDePropagacao ) 
+    {
+        this.atrasoDePropagacao = atrasoDePropagacao;
     }
 
-    public void setTempoDeTimeout ( Integer tempoDeTimeout )
+    public void setAtrasoDeTransmissao ( int atrasoDeTransmissao )
     {
-        if ( tempoDeTimeout != null )
-        {
-            this.tempoDeTimeoutDePacote = tempoDeTimeout;
-        }
+        this.atrasoDeTransmissao = atrasoDeTransmissao;
     }
 
-    public void setAtrasoDePropagacao ( Integer atrasoDePropagacao )
+    public void setProbabilidadeDePerda ( int probabilidadeDePerda )
     {
-        if ( atrasoDePropagacao != null )
-        {
-            this.atrasoDePropagacao = atrasoDePropagacao;
-        }
-    }
-
-    public void setProbabilidadeDePerda ( Integer probabilidadeDePerda )
-    {
-        if ( probabilidadeDePerda != null )
-        {
-            this.probabilidadeDePerda = probabilidadeDePerda;
-        }
+        this.probabilidadeDePerda = probabilidadeDePerda;
     }
 
     /**
@@ -181,12 +179,12 @@ public class UDPdoCliente
         return this.cliente.getEnderecoIP();
     }
 
-    InetAddress getEnderecoIPdoDestinatario () 
+    InetAddress getEnderecoIPdoRoteador () 
     {
         return this.roteador.getEnderecoIP();
     }
 
-    int getPortaDoDestinatario () 
+    int getPortaDoRoteador () 
     {
         return this.roteador.getPorta();
     }
@@ -206,9 +204,9 @@ public class UDPdoCliente
         return this.tempoDeTimeoutDePacote;
     }
 
-    int getAtrasoDePropagacao () 
+    int getAtrasoDeTransmissao () 
     {
-        return this.atrasoDePropagacao;
+        return this.atrasoDeTransmissao;
     }
 
     int getProbabilidadeDePerda () 
@@ -346,10 +344,10 @@ public class UDPdoCliente
                 this.roteador.getPorta()
             );
 
-        if ( this.atrasoDePropagacao > 0 ) 
+        if ( this.atrasoDeTransmissao > 0 ) 
         {
             sleep( 
-                this.atrasoDePropagacao
+                this.atrasoDeTransmissao
                 * pacote.length
             );
         }
@@ -413,7 +411,8 @@ public class UDPdoCliente
 
     } 
 
-    public void run () {
+    public void run () 
+    {
 
         try {
 
@@ -422,7 +421,7 @@ public class UDPdoCliente
             this.socket = new DatagramSocket( this.cliente.getPorta() );
                 
             this.threadDeSaida = new ThreadDeSaida( this );
-            this.threadDeEntrada = new ThreadDeEntrada( this );
+            this.threadDeEntrada = new ThreadDeEntrada( this, atrasoDePropagacao );
     
             this.threadDeSaida.start();
             this.threadDeEntrada.start();
@@ -430,7 +429,8 @@ public class UDPdoCliente
             System.out.println( this.cliente.getNome() + ": Em funcionamento..." );
 
         } 
-        catch ( Exception e ) {
+        catch ( Exception e ) 
+        {
             
             e.printStackTrace();
             System.exit( -1 );
