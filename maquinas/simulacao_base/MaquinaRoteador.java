@@ -9,8 +9,13 @@ import modelos.EnderecoDeMaquina;
 
 public class MaquinaRoteador 
 {
+
+    public MaquinaRoteador()
+    {
+
+    }
     
-    public static void main ( String[] args )
+    public void main ( String[] args )
         throws Exception
     {
 

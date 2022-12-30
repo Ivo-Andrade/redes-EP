@@ -11,15 +11,18 @@ public class SimulacaoBase
         throws Exception
     {
 
-        MaquinaServidor.main( null );
+        MaquinaServidor maquinaServidor = new MaquinaServidor();
+        maquinaServidor.main( null );
 
         Thread.sleep( 1000 );
 
-        MaquinaRoteador.main( null );
+        MaquinaRoteador maquinaRoteador = new MaquinaRoteador();
+        maquinaRoteador.main( null );
 
         Thread.sleep( 1000 );
 
-        MaquinaCliente.main( null );
+        MaquinaCliente maquinaCliente = new MaquinaCliente( 1000000 );
+        maquinaCliente.main( null );
 
     }
     

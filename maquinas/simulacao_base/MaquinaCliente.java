@@ -8,12 +8,19 @@ import modelos.EnderecoDeMaquina;
 
 public class MaquinaCliente 
 {
+
+    private final int bytesDaMensagem;
+
+    public MaquinaCliente ( int bytes )
+    {
+        this.bytesDaMensagem = bytes;
+    }
     
-    public static void main ( String[] args )
+    public void main ( String[] args )
         throws Exception
     {
 
-        String mensagem = GeradorDeLoremIpsum.gerarLoremIpsum( 100000 );
+        String mensagem = GeradorDeLoremIpsum.gerarLoremIpsum( this.bytesDaMensagem );
 
         UDPdoCliente udpDoCliente = 
             new UDPdoCliente(
