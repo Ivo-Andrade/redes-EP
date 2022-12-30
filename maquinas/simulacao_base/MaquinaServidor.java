@@ -1,8 +1,6 @@
 package maquinas.simulacao_base;
 
-import java.net.InetAddress;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import implementacoes_udp.servidor.UDPdoServidor;
 import modelos.EnderecoDeMaquina;
@@ -10,34 +8,40 @@ import modelos.EnderecoDeMaquina;
 public class MaquinaServidor 
 {
 
-    public MaquinaServidor()
+    private final EnderecoDeMaquina servidor;
+    private final EnderecoDeMaquina roteador;
+    private final SortedMap<Integer,EnderecoDeMaquina> clientes;
+
+    public MaquinaServidor (
+        EnderecoDeMaquina servidor,
+        EnderecoDeMaquina roteador,
+        SortedMap<Integer,EnderecoDeMaquina> clientes
+    )
     {
-        
+        this.servidor = servidor;
+        this.roteador = roteador;
+        this.clientes = clientes;
     }
     
-    public void main ( String[] args )
+    public void run ()
         throws Exception
     {
 
         UDPdoServidor udpDoServidor = 
             new UDPdoServidor(
-                "simulacao_base-Servidor",
-                9999
+                servidor.getNome(),
+                servidor.getPorta()
             );
         
         udpDoServidor.setRoteador(
             new EnderecoDeMaquina(
-                "simulacao_base-Roteador",
-                InetAddress.getLocalHost(),
-                9555
+                roteador.getNome(),
+                roteador.getEnderecoIP(),
+                roteador.getPorta()
             )
         );
 
-        SortedMap<Integer,String> listaDeClientes = new TreeMap<>();
-
-        listaDeClientes.put( 1, "simulacao_base-Cliente" );
-
-        udpDoServidor.setClientes( listaDeClientes );
+        udpDoServidor.setClientes( this.clientes );
 
         udpDoServidor.start();
         

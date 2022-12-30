@@ -19,10 +19,10 @@ public class UDPdoServidor
 
     private final EnderecoDeMaquina servidor;
     private EnderecoDeMaquina roteador;
+    private SortedMap<Integer,EnderecoDeMaquina> clientes;
 
     private DatagramSocket socket;
 
-    private SortedMap<Integer,String> clientes;
     private SortedMap<Integer,String> mensagensDosCliente;
     private SortedMap<Integer,SortedMap<Integer,String>> bufferDeMsgsRecebidasDosClientes;
 
@@ -75,7 +75,7 @@ public class UDPdoServidor
         this.numAnteriorDaSequenciaDePacotes = -1;
         this.proxNumDaSequenciaDePacotes = 0;
 
-        this.clientes = new TreeMap<Integer,String>();
+        this.clientes = new TreeMap<Integer,EnderecoDeMaquina>();
 
         this.mensagensDosCliente = new TreeMap<Integer,String>();
         this.bufferDeMsgsRecebidasDosClientes = new TreeMap<Integer,SortedMap<Integer,String>>();
@@ -91,7 +91,7 @@ public class UDPdoServidor
      */
 
     public void setClientes (
-        SortedMap<Integer,String> listaClientes
+        SortedMap<Integer,EnderecoDeMaquina> listaClientes
     )
     {
         this.clientes = listaClientes;
@@ -167,7 +167,7 @@ public class UDPdoServidor
         return this.servidor.getPorta();
     }
 
-    SortedMap<Integer,String> getClientes () 
+    SortedMap<Integer,EnderecoDeMaquina> getClientes () 
     {
         return this.clientes;
     }
@@ -263,7 +263,8 @@ public class UDPdoServidor
 
     }
 
-    public void salvarMensagem( int idDoCliente ) 
+    public void salvarMensagem( int idDoCliente )
+        throws Exception
     {
 
         SortedMap<Integer,String> listaDeMsgsDoCliente =
@@ -275,7 +276,13 @@ public class UDPdoServidor
             bufferDeMsg.append(msg);
         }
 
-        this.mensagensDosCliente.put( idDoCliente, bufferDeMsg.toString() );
+        this.mensagensDosCliente.put( 
+            idDoCliente, 
+            this.criptografia
+                .decodificarMensagem(
+                    bufferDeMsg.toString()
+                ) 
+        );
 
     }
 

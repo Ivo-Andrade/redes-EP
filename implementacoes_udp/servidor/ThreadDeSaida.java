@@ -48,7 +48,7 @@ public class ThreadDeSaida
                         + ": Pacote " 
                         + numDoPacote
                         + " recebido de " 
-                        + udp.getClientes().get( idDoCliente ) 
+                        + udp.getClientes().get( idDoCliente ).getNome()
                     );
 
                     byte[] bytesDoPayload = 
@@ -74,7 +74,7 @@ public class ThreadDeSaida
                             + ": Envio de ACK " 
                             + (-2)
                             + " para "
-                            + udp.getClientes().get( idDoCliente ) 
+                            + udp.getClientes().get( idDoCliente ).getNome() 
                         );
 
                         udp.salvarMensagem( idDoCliente );
@@ -86,10 +86,7 @@ public class ThreadDeSaida
                         udp.adicionarMensagemAoBuffer (
                             idDoCliente,
                             numDoPacote,
-                            udp.getCriptografia()
-                                .decodificarMensagem(
-                                    new String( bytesDoPayload )
-                                )
+                            new String( bytesDoPayload )
                         );
 
                         byte[] pacoteDeACK = 
@@ -108,7 +105,7 @@ public class ThreadDeSaida
                             + ": Envio de ACK " 
                             + numDoPacote
                             + " para "
-                            + udp.getClientes().get( idDoCliente )
+                            + udp.getClientes().get( idDoCliente ).getNome()
                         );
 
                     }

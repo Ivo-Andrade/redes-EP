@@ -20,7 +20,7 @@ public class UDPdoCliente
     private final String mensagemDeEnvio;
 
     private final EnderecoDeMaquina cliente;
-    private EnderecoDeMaquina destinatario;
+    private EnderecoDeMaquina roteador;
 
     private DatagramSocket socket;
     
@@ -98,11 +98,11 @@ public class UDPdoCliente
      * 
      */
 
-     public void setDestinatario ( 
+     public void setRoteador ( 
         EnderecoDeMaquina destinatario
     )
     {
-        this.destinatario = destinatario;
+        this.roteador = destinatario;
     }
 
     public void setTamanhoDoPacote ( Integer tamanhoDoPacote )
@@ -183,12 +183,12 @@ public class UDPdoCliente
 
     InetAddress getEnderecoIPdoDestinatario () 
     {
-        return this.destinatario.getEnderecoIP();
+        return this.roteador.getEnderecoIP();
     }
 
     int getPortaDoDestinatario () 
     {
-        return this.destinatario.getPorta();
+        return this.roteador.getPorta();
     }
 
     int getTamanhoDoPacote () 
@@ -342,8 +342,8 @@ public class UDPdoCliente
             new DatagramPacket(
                 pacote, 
                 pacote.length,
-                this.destinatario.getEnderecoIP(),
-                this.destinatario.getPorta()
+                this.roteador.getEnderecoIP(),
+                this.roteador.getPorta()
             );
 
         if ( this.atrasoDePropagacao > 0 ) 

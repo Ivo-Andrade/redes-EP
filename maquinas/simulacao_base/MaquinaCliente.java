@@ -9,14 +9,27 @@ import modelos.EnderecoDeMaquina;
 public class MaquinaCliente 
 {
 
+    private int idDeCliente;
+
+    private final EnderecoDeMaquina cliente;
+    private final EnderecoDeMaquina roteador;
+
     private final int bytesDaMensagem;
 
-    public MaquinaCliente ( int bytes )
+    public MaquinaCliente (
+        int idDeCliente,
+        EnderecoDeMaquina cliente,
+        EnderecoDeMaquina roteador,
+        int bytes 
+    )
     {
+        this.idDeCliente = idDeCliente;
+        this.cliente = cliente;
+        this.roteador = roteador;
         this.bytesDaMensagem = bytes;
     }
     
-    public void main ( String[] args )
+    public void run ()
         throws Exception
     {
 
@@ -24,19 +37,13 @@ public class MaquinaCliente
 
         UDPdoCliente udpDoCliente = 
             new UDPdoCliente(
-                1,
-                "simulacao_base-Cliente",
-                9111,
+                idDeCliente,
+                cliente.getNome(),
+                cliente.getPorta(),
                 mensagem
             );
         
-        udpDoCliente.setDestinatario(
-            new EnderecoDeMaquina(
-                "simulacao_base-Roteador",
-                InetAddress.getLocalHost(),
-                9555
-            )
-        );
+        udpDoCliente.setRoteador( roteador );
 
         udpDoCliente.start();
 

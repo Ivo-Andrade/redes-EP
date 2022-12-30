@@ -1,6 +1,5 @@
 package maquinas.simulacao_base;
 
-import java.net.InetAddress;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -10,42 +9,40 @@ import modelos.EnderecoDeMaquina;
 public class MaquinaRoteador 
 {
 
-    public MaquinaRoteador()
-    {
+    private final EnderecoDeMaquina servidor;
+    private final EnderecoDeMaquina roteador;
+    private final SortedMap<Integer,EnderecoDeMaquina> clientes;
 
+    public MaquinaRoteador (
+        EnderecoDeMaquina servidor,
+        EnderecoDeMaquina roteador,
+        SortedMap<Integer,EnderecoDeMaquina> clientes
+    )
+    {
+        this.servidor = servidor;
+        this.roteador = roteador;
+        this.clientes = clientes;
     }
     
-    public void main ( String[] args )
+    public void run ()
         throws Exception
     {
 
         UDPdeRoteador udpDoRoteador = 
             new UDPdeRoteador(
-                "simulacao_base-Roteador",
-                9555
+                roteador.getNome(),
+                roteador.getPorta()
             );
         
         udpDoRoteador.setServidor(
             new EnderecoDeMaquina(
-                "simulacao_base-Servidor",
-                InetAddress.getLocalHost(),
-                9999
+                servidor.getNome(),
+                servidor.getEnderecoIP(),
+                servidor.getPorta()
             )
         );
 
-        SortedMap<Integer,EnderecoDeMaquina> listaDeClientes = 
-            new TreeMap<>();
-
-        EnderecoDeMaquina cliente =
-            new EnderecoDeMaquina(
-                "simulacao_base-Cliente",
-                InetAddress.getLocalHost(),
-                9111
-            );
-
-        listaDeClientes.put( 1, cliente );
-
-        udpDoRoteador.setClientes( listaDeClientes );
+        udpDoRoteador.setClientes( clientes );
 
         SortedMap<Integer,Integer> atrasosDePropagacao = 
             new TreeMap<>();
