@@ -52,75 +52,132 @@ public class ThreadDeSaida
                         + udp.getClientes().get( idDoCliente ).getNome()
                     );
 
-                    byte[] bytesDoPayload = 
-                        GerenciadorDePacote
-                            .decodificarDados( dadosDoPacote );
+                    if ( ! udp.verificarJanelaDeRepeticaoSeletiva( idDoCliente, numDoPacote ) ) {
+                        
+                        if ( udp.verificarSeAbaixoDoBufferCompleto( idDoCliente ) )
+                        {
+                            
+                            byte[] pacoteDeACK = 
+                                GerenciadorDePacote
+                                    .construirPacote(
+                                        udp.getIdDoServidor(),
+                                        idDoCliente,
+                                        -2,
+                                        new byte[0]
+                                    );
+    
+                            udp.enviarPacote( pacoteDeACK );
+    
+                            System.out.println(
+                                udp.getDenominacao()
+                                + ": Envio de ACK " 
+                                + (-2)
+                                + " para "
+                                + udp.getClientes().get( idDoCliente ).getNome() 
+                            );
+    
+                            udp.salvarMensagem( idDoCliente );
+    
+                        }
+                        else if ( udp.verificarAbaixoDaJanelaDeRepeticao( idDoCliente, numDoPacote ) )
+                        {
+                            
+                            byte[] pacoteDeACK = 
+                                GerenciadorDePacote
+                                    .construirPacote(
+                                        udp.getIdDoServidor(),
+                                        idDoCliente,
+                                        numDoPacote,
+                                        new byte[0]
+                                    );
+    
+                            udp.enviarPacote( pacoteDeACK );
+    
+                            System.out.println(
+                                udp.getDenominacao()
+                                + ": Envio de ACK duplicado " 
+                                + numDoPacote
+                                + " para "
+                                + udp.getClientes().get( idDoCliente ).getNome()
+                            );
 
-                    if ( bytesDoPayload.length == 0 )
-                    {
-                        udp.salvarTamanhoDoBufferDeMensagem( idDoCliente, numDoPacote );
+                        }
+
                     }
                     else
                     {
-                        udp.adicionarMensagemAoBuffer (
-                            idDoCliente,
-                            numDoPacote,
-                            new String( bytesDoPayload )
-                        );
-                    }
 
-                    if ( udp.verificarBufferCompleto( idDoCliente ) )
-                    {
-                        
-                        byte[] pacoteDeACK = 
+                        byte[] bytesDoPayload = 
+                            GerenciadorDePacote
+                                .decodificarDados( dadosDoPacote );
+    
+                        if ( bytesDoPayload.length == 0 )
+                        {
+                            udp.salvarTamanhoDoBufferDeMensagem( idDoCliente, numDoPacote );
+                        }
+                        else
+                        {
+                            udp.adicionarMensagemAoBuffer (
+                                idDoCliente,
+                                numDoPacote,
+                                new String( bytesDoPayload )
+                            );
+                        }
+    
+                        if ( udp.verificarSeAbaixoDoBufferCompleto( idDoCliente ) )
+                        {
+                            
+                            byte[] pacoteDeACK = 
+                                GerenciadorDePacote
+                                    .construirPacote(
+                                        udp.getIdDoServidor(),
+                                        idDoCliente,
+                                        -2,
+                                        new byte[0]
+                                    );
+    
+                            udp.enviarPacote( pacoteDeACK );
+    
+                            System.out.println(
+                                udp.getDenominacao()
+                                + ": Envio de ACK " 
+                                + (-2)
+                                + " para "
+                                + udp.getClientes().get( idDoCliente ).getNome() 
+                            );
+    
+                            udp.salvarMensagem( idDoCliente );
+    
+                        }
+                        else 
+                        {
+                            
+                            byte[] pacoteDeACK = 
                             GerenciadorDePacote
                                 .construirPacote(
                                     udp.getIdDoServidor(),
                                     idDoCliente,
-                                    -2,
+                                    numDoPacote,
                                     new byte[0]
                                 );
-
-                        udp.enviarPacote( pacoteDeACK );
-
-                        System.out.println(
-                            udp.getDenominacao()
-                            + ": Envio de ACK " 
-                            + (-2)
-                            + " para "
-                            + udp.getClientes().get( idDoCliente ).getNome() 
-                        );
-
-                        udp.salvarMensagem( idDoCliente );
-
-                    }
-                    else 
-                    {
-                        
-                        byte[] pacoteDeACK = 
-                        GerenciadorDePacote
-                            .construirPacote(
-                                udp.getIdDoServidor(),
-                                idDoCliente,
-                                numDoPacote,
-                                new byte[0]
+    
+                            udp.enviarPacote( pacoteDeACK );
+    
+                            System.out.println(
+                                udp.getDenominacao()
+                                + ": Envio de ACK " 
+                                + numDoPacote
+                                + " para "
+                                + udp.getClientes().get( idDoCliente ).getNome()
                             );
-
-                        udp.enviarPacote( pacoteDeACK );
-
-                        System.out.println(
-                            udp.getDenominacao()
-                            + ": Envio de ACK " 
-                            + numDoPacote
-                            + " para "
-                            + udp.getClientes().get( idDoCliente ).getNome()
-                        );
+    
+                        }
 
                     }
                             
                 }
 
-                sleep( 1 );
+                sleep( 5 );
 
             }
             

@@ -81,7 +81,7 @@ public class ThreadDeSaida
 
                 }
 
-                sleep( 1 );
+                sleep( 5 );
 
             }
             

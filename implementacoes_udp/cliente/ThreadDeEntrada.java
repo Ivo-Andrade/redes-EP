@@ -35,8 +35,6 @@ public class ThreadDeEntrada
 
                 udp.getSocket().receive( pacoteDeEntrada );
 
-                udp.getSemaforoDasVars().acquire();
-
                 sleep( this.atrasoDePropagacao );
                 
                 int numDeACK = 
@@ -47,8 +45,6 @@ public class ThreadDeEntrada
                         + ": Recebido ACK " 
                         + numDeACK 
                 );
-                
-                udp.removeTimeoutTask( numDeACK );
 
                 if ( numDeACK == -2 )
                 {
@@ -56,12 +52,20 @@ public class ThreadDeEntrada
                 }
                 else if ( numDeACK != -1 )
                 {
-                    udp.atualizarJanela( numDeACK );
+
+                    udp.getSemaforoDeTimeouts().acquire();
+                    udp.removerTimeoutTask( numDeACK );
+                    udp.getSemaforoDeTimeouts().release();
+
+                    udp.getSemaforoDeFluxo().acquire();
+                    udp.atualizarJanelaDeRepeticaoSeletiva( numDeACK );
+                    udp.getSemaforoDeFluxo().release();
+                    
                 }
 
-                udp.getSemaforoDasVars().release();
-
             }
+
+            sleep( 5 );
 
         }
         catch ( Exception e )

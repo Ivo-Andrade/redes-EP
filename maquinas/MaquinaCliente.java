@@ -14,7 +14,7 @@ public class MaquinaCliente
 
     private final int bytesDaMensagem;
 
-    private int tamanhoDeJanelaDePacotes;
+    private int tamanhoDaJanelaDeRepeticaoSeletiva;
     private int tempoDeTimeout;
 
     private int atrasoDePropagacao;
@@ -33,7 +33,7 @@ public class MaquinaCliente
         this.roteador = roteador;
         this.bytesDaMensagem = bytes;
 
-        this.tamanhoDeJanelaDePacotes = -1;
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = -1;
         this.tempoDeTimeout = -1;
 
         this.atrasoDePropagacao = 0;
@@ -41,9 +41,9 @@ public class MaquinaCliente
         this.probabilidadeDePerda = 0;
     }
 
-    public void setTamanhoDeJanelaDePacotes ( int tamanhoDeJanelaDePacotes ) 
+    public void setTamanhoDeJanelaDeRepeticaoSeletiva ( int tamanhoDaJanelaDeRepeticaoSeletiva ) 
     {
-        this.tamanhoDeJanelaDePacotes = tamanhoDeJanelaDePacotes;
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = tamanhoDaJanelaDeRepeticaoSeletiva;
     }
 
     public void setTempoDeTimeout ( int tempoDeTimeout ) 
@@ -81,12 +81,12 @@ public class MaquinaCliente
                 roteador
             );
 
-        if ( this.tamanhoDeJanelaDePacotes > 0 )
+        if ( this.tamanhoDaJanelaDeRepeticaoSeletiva > 0 )
         {
-            udpDoCliente.setTamanhoDeJanelaDePacotes( this.tamanhoDeJanelaDePacotes );
+            udpDoCliente.setTamanhoDaJanelaDeRepeticaoSeletiva( this.tamanhoDaJanelaDeRepeticaoSeletiva );
         }
 
-        if ( this.tamanhoDeJanelaDePacotes > 0 )
+        if ( this.tamanhoDaJanelaDeRepeticaoSeletiva > 0 )
         {
             udpDoCliente.setTempoDeTimeout( this.tempoDeTimeout );
         }

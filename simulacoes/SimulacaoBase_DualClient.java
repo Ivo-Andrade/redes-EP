@@ -35,28 +35,28 @@ public class SimulacaoBase_DualClient
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacao_base-Servidor",
+                "simulacaoBase_dualClient-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacao_base-Roteador",
+                "simulacaoBase_dualClient-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
         
         EnderecoDeMaquina cliente1 =
             new EnderecoDeMaquina(
-                "simulacao_base-Cliente_1",
+                "simulacaoBase_dualClient-Cliente_1",
                 InetAddress.getLocalHost(),
                 9111
             );
 
         EnderecoDeMaquina cliente2 =
             new EnderecoDeMaquina(
-                "simulacao_base-Cliente_2",
+                "simulacaoBase_dualClient-Cliente_2",
                 InetAddress.getLocalHost(),
                 9222
             );
@@ -67,7 +67,6 @@ public class SimulacaoBase_DualClient
 
         // Definição de variáveis
 
-        // TODO: Propagation delays not working properly 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
         atrasosDePropagacao.put( 0, 0 );
         atrasosDePropagacao.put( 1, 0 );
@@ -93,7 +92,7 @@ public class SimulacaoBase_DualClient
             );
 
         maquinaServidor.setTamanhoDoPacote( tamanhoDoPacote );
-        maquinaServidor.setTamanhoDoBufferDeRecepcao( tamanhoDoBufferDeRecepcaoNoServidor );
+        maquinaServidor.setTamanhoDaJanelaDeRepeticaoSeletiva( tamanhoDoBufferDeRecepcaoNoServidor );
         maquinaServidor.setAtrasoDeRecepcao( atrasoDeRecepcaoNoServidor );
 
         maquinaServidor.setAtrasoDePropagacao( atrasosDePropagacao.get( 0 ));
@@ -129,7 +128,7 @@ public class SimulacaoBase_DualClient
                 100000
             );
 
-        maquinaCliente1.setTamanhoDeJanelaDePacotes( tamanhoDaFilaDePacotesNoCliente );
+        maquinaCliente1.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaFilaDePacotesNoCliente );
         maquinaCliente1.setTempoDeTimeout( tempoDeTimeoutDoCliente );
 
         maquinaCliente1.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
@@ -144,7 +143,7 @@ public class SimulacaoBase_DualClient
                 100000
             );
 
-        maquinaCliente2.setTamanhoDeJanelaDePacotes( tamanhoDaFilaDePacotesNoCliente );
+        maquinaCliente2.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaFilaDePacotesNoCliente );
         maquinaCliente2.setTempoDeTimeout( tempoDeTimeoutDoCliente );
 
         maquinaCliente2.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));

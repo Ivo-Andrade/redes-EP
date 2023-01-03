@@ -60,107 +60,277 @@ public class ThreadDeSaida
             while ( ! udp.aTransferenciaTerminou() )
             {
 
-                udp.getSemaforoDasVars().acquire();
+                udp.getSemaforoDeCongestionamento().acquire();
+                udp.getSemaforoDeReenvios().acquire();
+                udp.getSemaforoDeFluxo().acquire();
+                udp.getSemaforoDeTimeouts().acquire();
 
-                if (
-                    (
-                        ! udp.existemPacotesEmTimeout()
-                        && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
-                    )
-                ) {
+                // if (
+                //     (
+                //         ! udp.existemPacotesEmTimeout()
+                //         && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
+                //     )
+                // ) {
 
-                    if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
-                    {
-                        udp.getSemaforoDasVars().release();
-                        continue;
-                    }
+                //     if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
+                //     {
+                //         udp.getSemaforoDeTimeouts().release();
+                //         udp.getSemaforoDeFluxo().release();
+                //         udp.getSemaforoDeReenvios().release();
+                //         udp.getSemaforoDeCongestionamento().release();
+                //         continue;
+                //     }
                     
+                // }
+
+                // if ( udp.existemPacotesEmTimeout() ) 
+                // {
+                //     udp.reduzaJanelaDeCongestionamento();
+                // }
+                // else
+                // {
+                //     if ( udp.getTamanhoDeJanelaDeRepeticaoSeletiva() > udp.getJanelaDeCongestionamento() ) 
+                //     {
+                //         udp.incrementeJanelaDeCongestionamento();
+                //     }
+                // }
+
+                // udp.configureBaseDaJanelaDeCongestionamento( 
+                //     udp.getProxNumDaSequenciaDePacotes()
+                // );
+
+                
+
+                if ( udp.existemPacotesEmTimeout() )
+                {
+
+                    udp.reduzaJanelaDeCongestionamento();
+
+                    System.out.println( "RECUPERACAO RAPIDA - " + udp.getJanelaDeCongestionamento() );
+
+                    Entry<Integer, byte[]> pacoteParaEnvio = udp.removerPacoteEmTimeout();
+
+                    udp.enviePacote( pacoteParaEnvio.getValue() );
+
+                    System.out.println( 
+                        udp.getDenominacao() 
+                        + ": Re-Envio do pacote em timeout " 
+                        + pacoteParaEnvio.getKey() 
+                    );
+
+                    udp.adicionarTimeout( pacoteParaEnvio.getKey() , pacoteParaEnvio.getValue() );
+
+                    udp.configureBaseDaJanelaDeCongestionamento( pacoteParaEnvio.getKey(), 1 );
+
+                    System.out.println( "RECUPERACAO RAPIDA - FIM " + pacoteParaEnvio.getKey() + " " + 1 );
+
                 }
+                else if ( udp.verificarACKdaJanelaDeCongestionamentoAnterior() )
+                {
 
-                if (
-                    ! udp.existemPacotesEmTimeout()
-                ) {
-
-                    if ( udp.getTamanhoDeJanelaDePacotes() > udp.getJanelaDeCongestionamento() ) 
+                    if ( udp.getTamanhoDeJanelaDeRepeticaoSeletiva() > udp.getJanelaDeCongestionamento() ) 
                     {
                         udp.incrementeJanelaDeCongestionamento();
                     }
 
-                    udp.configureBaseDaJanelaDeCongestionamento( 
-                        udp.getProxNumDaSequenciaDePacotes(),
-                        udp.getJanelaDeCongestionamento()
-                    );
-                }
-    
-                System.out.println( 
-                    udp.getDenominacao() 
-                    + ": ------------------------------------------ INICIO DE JANELA "
-                    + udp.getJanelaDeCongestionamento()
-                );
+                    System.out.println( "JANELA DE CONGESTIONAMENTO - " + udp.getJanelaDeCongestionamento() );
 
-                for ( 
-                    int i = udp.getBaseDaJanelaDeCongestionamento(); 
-                    i < udp.getBaseDaJanelaDeCongestionamento() + udp.getJanelaDeCongestionamento(); 
-                    i++
-                ) {
-
-                    if ( udp.existemPacotesEmTimeout() )
-                    {
-
-                        udp.reduzaJanelaDeCongestionamento();
+                    int base = udp.getProxNumDaSequenciaDePacotes();
+                    int janelaAtual = -1;
     
-                        Entry<Integer, byte[]> pacote = udp.obterPacoteEmTimeout();
+                    for ( 
+                        int i = udp.getBaseDaJanelaDeCongestionamento();
+                        i < udp.getBaseDaJanelaDeCongestionamento() + udp.getJanelaDeCongestionamento(); 
+                        i++
+                    ) {
+                        
+                        if (
+                            ! this.acabouCriacaoDePacotes
+                            && udp.getProxNumDaSequenciaDePacotes()
+                            < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDeRepeticaoSeletiva()
+                        )
+                        {
     
-                        udp.enviePacote( pacote.getValue() );
+                            byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
     
-                        System.out.println( 
-                            udp.getDenominacao()
-                            + ": Re-envio do pacote em timeout " 
-                            + pacote.getKey()
-                        );
+                            udp.enviePacote( pacoteParaEnvio );
     
-                        udp.adicioneTimeout( 
-                            pacote.getKey(),
-                            pacote.getValue()
-                        );
+                            System.out.println( 
+                                udp.getDenominacao() 
+                                + ": Envio do pacote " 
+                                + udp.getProxNumDaSequenciaDePacotes() 
+                            );
     
-                    }
-                    else if (
-                        ! this.acabouCriacaoDePacotes
-                        && udp.getProxNumDaSequenciaDePacotes()
-                        < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDePacotes()
-                    )
-                    {
+                            udp.adicionarACKaReceber( udp.getProxNumDaSequenciaDePacotes() );
     
-                        byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
+                            udp.adicionarTimeout( udp.getProxNumDaSequenciaDePacotes() , pacoteParaEnvio );
     
-                        udp.enviePacote( pacoteParaEnvio );
+                            udp.incrementeProxNumDaSequenciaDePacotes();
     
-                        System.out.println( 
-                            udp.getDenominacao() 
-                            + ": Envio do pacote " 
-                            + udp.getProxNumDaSequenciaDePacotes() 
-                        );
-    
-                        udp.adicioneTimeout( 
-                            udp.getProxNumDaSequenciaDePacotes(),
-                            pacoteParaEnvio
-                        );
-    
-                        udp.incrementeProxNumDaSequenciaDePacotes();
-    
-                    }
+                        }
+                        else
+                        {
+                            janelaAtual = i;
+                            break;
+                        }
                     
-                }
+                    }
+
+                    if ( janelaAtual == -1 )
+                    {
+                        janelaAtual = udp.getJanelaDeCongestionamento();
+                    }
+
+                    udp.configureBaseDaJanelaDeCongestionamento( base, janelaAtual );
     
-                System.out.println( 
-                    udp.getDenominacao() 
-                    + ": ------------------------------------------ FIM DE JANELA"
-                );
+                    System.out.println( "JANELA DE CONGESTIONAMENTO - FIM - " + base + " " + janelaAtual );
 
-                udp.getSemaforoDasVars().release();
+                }
 
-                sleep( 1 );
+                udp.getSemaforoDeTimeouts().release();
+                udp.getSemaforoDeFluxo().release();
+                udp.getSemaforoDeReenvios().release();
+                udp.getSemaforoDeCongestionamento().release();
+
+                sleep( 5 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+                // if (
+                //     (
+                //         ! udp.existemPacotesEmTimeout()
+                //         && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
+                //     )
+                // ) {
+
+                //     if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
+                //     {
+                //         udp.getSemaforoDasVars().release();
+                //         continue;
+                //     }
+                    
+                // }
+
+                // if ( udp.existemPacotesEmTimeout() )
+                // {
+
+                //     udp.reduzaJanelaDeCongestionamento();
+    
+                //     System.out.println( 
+                //         udp.getDenominacao() 
+                //         + ": ------------------------------------------ TIMEOUT "
+                //         + udp.getJanelaDeCongestionamento()
+                //     );
+
+                //     Entry<Integer, byte[]> pacote = udp.obterPacoteEmTimeout();
+
+                //     udp.enviePacote( pacote.getValue() );
+
+                //     System.out.println( 
+                //         udp.getDenominacao()
+                //         + ": Re-envio do pacote em timeout " 
+                //         + pacote.getKey()
+                //     );
+
+                //     udp.adicioneTimeout( 
+                //         pacote.getKey(),
+                //         pacote.getValue()
+                //     );
+
+                // } 
+                // else if ( 
+                //     udp.verificarACKdaJanelaDeCongestionamentoAnterior() 
+                //     || ! primeiroEnvioRealizado
+                // )
+                // {
+
+                //     if ( this.acabouCriacaoDePacotes )
+                //     {
+                //         continue;
+                //     }
+
+                //     if ( udp.getTamanhoDeJanelaDePacotes() > udp.getJanelaDeCongestionamento() ) 
+                //     {
+                //         udp.incrementeJanelaDeCongestionamento();
+                //     }
+
+                //     udp.configureBaseDaJanelaDeCongestionamento( 
+                //         udp.getProxNumDaSequenciaDePacotes(),
+                //         udp.getJanelaDeCongestionamento()
+                //     );
+    
+                //     System.out.println( 
+                //         udp.getDenominacao() 
+                //         + ": ------------------------------------------ INICIO DE JANELA "
+                //         + udp.getJanelaDeCongestionamento()
+                //     );
+    
+                //     for ( 
+                //         int i = udp.getBaseDaJanelaDeCongestionamento(); 
+                //         i < udp.getBaseDaJanelaDeCongestionamento() + udp.getJanelaDeCongestionamento(); 
+                //         i++
+                //     ) {
+    
+                //         if (
+                //             ! this.acabouCriacaoDePacotes
+                //             && udp.getProxNumDaSequenciaDePacotes()
+                //             < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDePacotes()
+                //         )
+                //         {
+        
+                //             byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
+        
+                //             udp.enviePacote( pacoteParaEnvio );
+
+                //             primeiroEnvioRealizado = true;
+        
+                //             System.out.println( 
+                //                 udp.getDenominacao() 
+                //                 + ": Envio do pacote " 
+                //                 + udp.getProxNumDaSequenciaDePacotes() 
+                //             );
+        
+                //             udp.adicioneTimeout( 
+                //                 udp.getProxNumDaSequenciaDePacotes(),
+                //                 pacoteParaEnvio
+                //             );
+        
+                //             udp.incrementeProxNumDaSequenciaDePacotes();
+        
+                //         }
+                        
+                //     }
+        
+                //     System.out.println( 
+                //         udp.getDenominacao() 
+                //         + ": ------------------------------------------ FIM DE JANELA"
+                //     );
+
+                // }
+
+                // udp.getSemaforoDasVars().release();
                 
             }
 
@@ -209,12 +379,12 @@ public class ThreadDeSaida
                 Arrays.copyOfRange( bufferDeMsg, 0, tamanhoDoPayload );
 
             return GerenciadorDePacote
-                    .construirPacote( 
-                        udp.getIdDeCliente(),
-                        udp.getIdDoServidor(),
-                        udp.getProxNumDaSequenciaDePacotes(), 
-                        bytesDoPayload
-                    );
+                .construirPacote( 
+                    udp.getIdDeCliente(),
+                    udp.getIdDoServidor(),
+                    udp.getProxNumDaSequenciaDePacotes(), 
+                    bytesDoPayload
+                );
 
         }
 

@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
 
 import criptografia.CriptografiaAES;
 import modelos.EnderecoDeMaquina;
@@ -23,12 +24,15 @@ public class UDPdoServidor
 
     private DatagramSocket socket;
 
+    private Semaphore semaforoDeFluxo;
+    private SortedMap<Integer,Integer> baseDeRecebimento;
+
     private SortedMap<Integer,String> mensagensDosCliente;
     private SortedMap<Integer,Integer> tamanhoDosBuffersDeMensagens;
     private SortedMap<Integer,SortedMap<Integer,String>> bufferDeMsgsRecebidasDosClientes;
 
     private int tamanhoDoPacote;
-    private int tamanhoDoBufferDeRecepcao;
+    private int tamanhoDaJanelaDeRepeticaoSeletiva;
     private int atrasoDeRecepcao;
     
     private int atrasoDePropagacao;
@@ -72,8 +76,9 @@ public class UDPdoServidor
 
         this.roteador = roteador;
 
+        this.clientes = clientes;
+
         this.tamanhoDoPacote = 1000;
-        this.tamanhoDoBufferDeRecepcao = 10;
 
         this.atrasoDePropagacao = 0;
         this.atrasoDeTransmissao = 0;
@@ -82,13 +87,15 @@ public class UDPdoServidor
         this.numAnteriorDaSequenciaDePacotes = -1;
         this.proxNumDaSequenciaDePacotes = 0;
 
-        this.clientes = clientes;
-
         this.tamanhoDosBuffersDeMensagens = new TreeMap<Integer,Integer>();
         this.mensagensDosCliente = new TreeMap<Integer,String>();
         this.bufferDeMsgsRecebidasDosClientes = new TreeMap<Integer,SortedMap<Integer,String>>();
 
         this.bufferDePacotes = new LinkedList<DatagramPacket>();
+
+        this.semaforoDeFluxo = new Semaphore( 1 );
+        this.baseDeRecebimento = new TreeMap<Integer,Integer>();
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = 10;
 
     }
 
@@ -103,9 +110,9 @@ public class UDPdoServidor
         this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setTamanhoDoBufferDeRecepcao ( int tamanhoDeJanelaDePacotes )
+    public void setTamanhoDaJanelaDeRepeticaoSeletiva ( int tamanhoDaJanelaDeRepeticaoSeletiva )
     {
-        this.tamanhoDoBufferDeRecepcao = tamanhoDeJanelaDePacotes;
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = tamanhoDaJanelaDeRepeticaoSeletiva;
     }
 
     public void setAtrasoDeRecepcao ( int atrasoDeRecepcao )
@@ -169,9 +176,9 @@ public class UDPdoServidor
         return this.tamanhoDoPacote;
     }
 
-    int getTamanhoDoBufferDeRecepcao () 
+    int getTamanhoDaJanelaDeRepeticaoSeletiva () 
     {
-        return this.tamanhoDoBufferDeRecepcao;
+        return this.tamanhoDaJanelaDeRepeticaoSeletiva;
     }
 
     int getAtrasoDeTransmissao () 
@@ -205,18 +212,76 @@ public class UDPdoServidor
      * 
      */
 
+    boolean verificarAbaixoDaJanelaDeRepeticao( int idDoCliente, int numDoPacote ) 
+    {
+        return this.baseDeRecebimento.get( idDoCliente ) > numDoPacote;
+    }
+
+    boolean verificarJanelaDeRepeticaoSeletiva( int idDoCliente, int numDoPacote ) 
+    {
+
+        if ( ! this.baseDeRecebimento.containsKey( idDoCliente ) )
+        {
+            this.baseDeRecebimento.put( idDoCliente, 0 );
+        }
+        
+        if ( 
+            numDoPacote < this.baseDeRecebimento.get( idDoCliente )
+            || numDoPacote > this.baseDeRecebimento.get( idDoCliente ) + tamanhoDaJanelaDeRepeticaoSeletiva
+        ) 
+        {
+            return false;
+        }
+
+        if ( numDoPacote == this.baseDeRecebimento.get( idDoCliente ) )
+        {
+
+            this.baseDeRecebimento.put( 
+                idDoCliente, 
+                this.baseDeRecebimento.get( idDoCliente ) + 1 
+            );
+            
+            boolean foiAtualizado = false;
+            while ( ! foiAtualizado ) 
+            {
+            
+                if ( 
+                        
+                    this.bufferDeMsgsRecebidasDosClientes
+                        .containsKey( idDoCliente )
+                    && this.bufferDeMsgsRecebidasDosClientes
+                        .get( idDoCliente )
+                        .containsKey( this.baseDeRecebimento.get( idDoCliente ) )
+                )
+                {
+
+                    this.baseDeRecebimento.put( 
+                        idDoCliente, 
+                        this.baseDeRecebimento.get( idDoCliente ) + 1 
+                    );
+
+                }
+                else
+                {
+                    foiAtualizado = true;
+                }
+            
+            }
+
+        }
+
+        return true;
+
+    }
+
     void adicionarPacoteAoBuffer( DatagramPacket pacote )
         throws Exception
     {
-        if ( this.bufferDePacotes.size() < tamanhoDoBufferDeRecepcao )
+        if ( this.atrasoDeRecepcao > 0 )
         {
-
-            if ( this.atrasoDeRecepcao > 0 )
-            {
-                sleep( this.atrasoDeRecepcao );
-            }
-            this.bufferDePacotes.add( pacote );
+            sleep( this.atrasoDeRecepcao );
         }
+        this.bufferDePacotes.add( pacote );
     }
 
     DatagramPacket removerPacoteDoBuffer ()
@@ -261,7 +326,7 @@ public class UDPdoServidor
         this.tamanhoDosBuffersDeMensagens.put( idDoCliente, tamanhoDoBuffer );
     }
 
-    boolean verificarBufferCompleto ( int idDoCliente ) 
+    boolean verificarSeAbaixoDoBufferCompleto ( int idDoCliente ) 
     {
         if ( this.tamanhoDosBuffersDeMensagens.containsKey( idDoCliente ) )
         {

@@ -13,7 +13,7 @@ public class MaquinaServidor
     private final SortedMap<Integer,EnderecoDeMaquina> clientes;
     
     private int tamanhoDoPacote;
-    private int tamanhoDoBufferDeRecepcao;
+    private int tamanhoDaJanelaDeRepeticaoSeletiva;
     private int atrasoDeRecepcao;
 
     private int atrasoDePropagacao;
@@ -31,7 +31,7 @@ public class MaquinaServidor
         this.clientes = clientes;
 
         this.tamanhoDoPacote = -1;
-        this.tamanhoDoBufferDeRecepcao = -1;
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = -1;
         this.atrasoDeRecepcao = -1;
 
         this.atrasoDePropagacao = 0;
@@ -59,9 +59,9 @@ public class MaquinaServidor
         this.tamanhoDoPacote = tamanhoDoPacote;
     }
     
-    public void setTamanhoDoBufferDeRecepcao ( int tamanhoDoBufferDeRecepcao ) 
+    public void setTamanhoDaJanelaDeRepeticaoSeletiva ( int tamanhoDaJanelaDeRepeticaoSeletiva ) 
     {
-        this.tamanhoDoBufferDeRecepcao = tamanhoDoBufferDeRecepcao;
+        this.tamanhoDaJanelaDeRepeticaoSeletiva = tamanhoDaJanelaDeRepeticaoSeletiva;
     }
     
     public void setAtrasoDeRecepcao ( int atrasoDeRecepcao ) 
@@ -86,9 +86,9 @@ public class MaquinaServidor
             udpDoServidor.setTamanhoDoPacote( this.tamanhoDoPacote );
         }
 
-        if ( this.tamanhoDoBufferDeRecepcao > 0 )
+        if ( this.tamanhoDaJanelaDeRepeticaoSeletiva > 0 )
         {
-            udpDoServidor.setTamanhoDoBufferDeRecepcao( this.tamanhoDoBufferDeRecepcao );
+            udpDoServidor.setTamanhoDaJanelaDeRepeticaoSeletiva( this.tamanhoDaJanelaDeRepeticaoSeletiva );
         }
 
         if ( this.atrasoDeRecepcao > 0 )

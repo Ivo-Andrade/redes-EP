@@ -24,10 +24,9 @@ public class SimulacaoBase_SingleClient
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaFilaDePacotesNoCliente = ( 32 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 128 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
-        int tamanhoDoBufferDeRecepcaoNoServidor = ( Integer.MAX_VALUE );
 
         int atrasoDeRecepcaoNoServidor = 0;
 
@@ -35,21 +34,21 @@ public class SimulacaoBase_SingleClient
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacao_base-Servidor",
+                "simulacaoBase_singleClient-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacao_base-Roteador",
+                "simulacaoBase_singleClient-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
 
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacao_base-Cliente",
+                "simulacaoBase_singleClient-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
@@ -59,18 +58,17 @@ public class SimulacaoBase_SingleClient
 
         // Definição de variáveis
 
-        // TODO: Propagation delays not working properly 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
-        atrasosDePropagacao.put( 0, 0 );
-        atrasosDePropagacao.put( 1, 0 );
+        atrasosDePropagacao.put( 0, 0001 );
+        atrasosDePropagacao.put( 1, 0001 );
 
         SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
-        atrasosDeTransmissao.put( 0, 0 );
-        atrasosDeTransmissao.put( 1, 0 );
+        atrasosDeTransmissao.put( 0, 0001 );
+        atrasosDeTransmissao.put( 1, 0001 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0.1 );
-        probabilidadesDePerda.put( 1, 0.1 );
+        probabilidadesDePerda.put( 0, 0.01 );
+        probabilidadesDePerda.put( 1, 0.01 );
 
         // Definição de máquinas
         
@@ -82,7 +80,7 @@ public class SimulacaoBase_SingleClient
             );
 
         maquinaServidor.setTamanhoDoPacote( tamanhoDoPacote );
-        maquinaServidor.setTamanhoDoBufferDeRecepcao( tamanhoDoBufferDeRecepcaoNoServidor );
+        maquinaServidor.setTamanhoDaJanelaDeRepeticaoSeletiva( tamanhoDaJanelaDeRepeticaoSeletiva );
         maquinaServidor.setAtrasoDeRecepcao( atrasoDeRecepcaoNoServidor );
 
         maquinaServidor.setAtrasoDePropagacao( atrasosDePropagacao.get( 0 ));
@@ -115,10 +113,10 @@ public class SimulacaoBase_SingleClient
                 1,
                 cliente,
                 roteador,
-                1000000
+                10000
             );
 
-        maquinaCliente.setTamanhoDeJanelaDePacotes( tamanhoDaFilaDePacotesNoCliente );
+        maquinaCliente.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaJanelaDeRepeticaoSeletiva );
         maquinaCliente.setTempoDeTimeout( tempoDeTimeoutDoCliente );
 
         maquinaCliente.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));

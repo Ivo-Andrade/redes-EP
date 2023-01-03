@@ -26,27 +26,32 @@ public class UDPdoCliente
     private DatagramSocket socket;
     
     private int tamanhoDoPacote;
-    private int tamanhoDeJanelaDePacotes;
+    private int tamanhoDeJanelaDeRepeticaoSeletiva;
     
     private int atrasoDePropagacao;
     private int atrasoDeTransmissao;
     private double probabilidadeDePerda;
 
     private int tempoDeTimeoutDePacote;
-    
-    private Semaphore semaforoDasVars;
 
-    private int janelaDeCongestionamento;
-    private int baseDaJanelaDeCongestionamento;
-    private int limiteDePartidaLenta;
-    
+    private Semaphore semaforoDeFluxo;
     private int baseDeEnvio;
     private int proxNumDaSequenciaDePacotes;
     private SortedMap<Integer,Boolean> listaDeACKdePacotes;
 
+    private Semaphore semaforoDeTimeouts;
     private SortedMap<Integer,Timer> listaDeTimersCorrentes;
     private SortedMap<Integer,TimerTask> listaDeTimerTasksCorrentes;
-    private SortedMap<Integer,byte[]> listaDePacotesEmTimeout;
+
+    private Semaphore semaforoDeReenvios;
+    private SortedMap<Integer, byte[]> pacotesEmTimeout;
+    
+    private Semaphore semaforoDeCongestionamento;
+    private int baseDaJanelaDeCongestionamento;
+    private int janelaDeCongestionamento;
+    private int limiteDePartidaLenta;
+    private int baseDaJanelaAnteriorDeCongestionamento;
+    private int janelaDePctEnviadosDeCongestionamento;
 
     private boolean aTransferenciaTerminou;
 
@@ -81,13 +86,11 @@ public class UDPdoCliente
             InetAddress.getLocalHost(),
             portaCliente 
         );
+
+        this.roteador = roteador;
         
         this.tamanhoDoPacote = 1000;
-        this.tamanhoDeJanelaDePacotes = 10;
-
-        this.janelaDeCongestionamento = 0;
-        this.baseDaJanelaDeCongestionamento = 0;
-        this.limiteDePartidaLenta = Integer.MAX_VALUE;
+        this.tamanhoDeJanelaDeRepeticaoSeletiva = 10;
     
         this.atrasoDePropagacao = 0;
         this.atrasoDeTransmissao = 0;
@@ -95,22 +98,28 @@ public class UDPdoCliente
 
         this.tempoDeTimeoutDePacote = 300;
 
-        this.roteador = roteador;
-
+        this.semaforoDeFluxo = new Semaphore( 1 );
         this.baseDeEnvio = 0;
         this.proxNumDaSequenciaDePacotes = 0;
-
         this.listaDeACKdePacotes = new TreeMap<Integer,Boolean>();
-        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDePacotes; i++ ) 
+        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDeRepeticaoSeletiva; i++ ) 
         {
             this.listaDeACKdePacotes.put( i, false );
         }
 
+        this.semaforoDeTimeouts = new Semaphore( 1 );
         this.listaDeTimersCorrentes = new TreeMap<Integer,Timer>();
         this.listaDeTimerTasksCorrentes = new TreeMap<Integer,TimerTask>();
-        this.listaDePacotesEmTimeout = new TreeMap<Integer,byte[]>();
 
-        this.semaforoDasVars = new Semaphore( 1 );
+        this.semaforoDeReenvios = new Semaphore( 1 );
+        this.pacotesEmTimeout = new TreeMap<Integer,byte[]>();
+
+        this.semaforoDeCongestionamento = new Semaphore( 1 );
+        this.baseDaJanelaDeCongestionamento = 0;
+        this.janelaDeCongestionamento = 0;
+        this.limiteDePartidaLenta = Integer.MAX_VALUE;
+        this.baseDaJanelaAnteriorDeCongestionamento = -1;
+        this.janelaDePctEnviadosDeCongestionamento = -1;
 
         this.aTransferenciaTerminou = false;
 
@@ -127,12 +136,12 @@ public class UDPdoCliente
         this.tamanhoDoPacote = tamanhoDoPacote;
     }
 
-    public void setTamanhoDeJanelaDePacotes ( int tamanhoDeJanela )
+    public void setTamanhoDaJanelaDeRepeticaoSeletiva ( int tamanhoDeJanela )
     {
-        this.tamanhoDeJanelaDePacotes = tamanhoDeJanela;
+        this.tamanhoDeJanelaDeRepeticaoSeletiva = tamanhoDeJanela;
 
         this.listaDeACKdePacotes = new TreeMap<Integer,Boolean>();
-        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDePacotes; i++ ) 
+        for ( int i = baseDeEnvio; i < this.tamanhoDeJanelaDeRepeticaoSeletiva; i++ ) 
         {
             this.listaDeACKdePacotes.put( i, false );
         }
@@ -189,29 +198,14 @@ public class UDPdoCliente
         return this.mensagemDeEnvio;
     }
 
-    InetAddress getEnderecoIPdoCliente () 
-    {
-        return this.cliente.getEnderecoIP();
-    }
-
-    InetAddress getEnderecoIPdoRoteador () 
-    {
-        return this.roteador.getEnderecoIP();
-    }
-
-    int getPortaDoRoteador () 
-    {
-        return this.roteador.getPorta();
-    }
-
     int getTamanhoDoPacote () 
     {
         return this.tamanhoDoPacote;
     }
 
-    int getTamanhoDeJanelaDePacotes () 
+    int getTamanhoDeJanelaDeRepeticaoSeletiva () 
     {
-        return this.tamanhoDeJanelaDePacotes;
+        return this.tamanhoDeJanelaDeRepeticaoSeletiva;
     }
 
     int getJanelaDeCongestionamento () 
@@ -223,15 +217,10 @@ public class UDPdoCliente
     {
         return this.baseDaJanelaDeCongestionamento;
     }
-
-    int getTempoDeTimeoutDePacote () 
+    
+    Semaphore getSemaforoDeFluxo () 
     {
-        return this.tempoDeTimeoutDePacote;
-    }
-
-    int getAtrasoDeTransmissao () 
-    {
-        return this.atrasoDeTransmissao;
+        return this.semaforoDeFluxo;
     }
 
     int getBaseDeEnvio () 
@@ -244,11 +233,21 @@ public class UDPdoCliente
         return this.proxNumDaSequenciaDePacotes;
     }
     
-    Semaphore getSemaforoDasVars () 
+    Semaphore getSemaforoDeTimeouts () 
     {
-        return this.semaforoDasVars;
+        return this.semaforoDeTimeouts;
     }
     
+    Semaphore getSemaforoDeReenvios () 
+    {
+        return this.semaforoDeReenvios;
+    }
+    
+    Semaphore getSemaforoDeCongestionamento () 
+    {
+        return this.semaforoDeCongestionamento;
+    }
+
     boolean aTransferenciaTerminou () 
     {
         return this.aTransferenciaTerminou;
@@ -265,222 +264,87 @@ public class UDPdoCliente
      * 
      */
 
-    void configureBaseDaJanelaDeCongestionamento ( 
-        int base,
-        int janelaDeCongestionamento
-    ) 
-    {
-        this.baseDaJanelaDeCongestionamento = base;
-        this.janelaDeCongestionamento = janelaDeCongestionamento;
-    }
-
     boolean verificarACKdaJanelaDeCongestionamentoAnterior ()
         throws Exception
     {
-        
-        if (
-            this.listaDeACKdePacotes.firstKey() > this.baseDaJanelaDeCongestionamento
-        )
+
+        if ( this.baseDaJanelaAnteriorDeCongestionamento == -1 )
         {
+                    
+            System.out.println( 
+                this.getDenominacao() 
+                    + ": VERIFICACAO true - BASE -1"
+            );
+
             return true;
         }
-    
-        for ( int numPacote : this.listaDeACKdePacotes.keySet() )
-        {
 
-            if (
-                numPacote >= this.baseDaJanelaDeCongestionamento
-                && numPacote < this.baseDaJanelaDeCongestionamento + this.janelaDeCongestionamento
-                && this.listaDeACKdePacotes.get( numPacote ) == true
-            )
-            {
-                return true;
-            }
-            else if 
-            (
-                numPacote >= this.baseDaJanelaDeCongestionamento + this.janelaDeCongestionamento
-                && this.listaDeACKdePacotes.get( numPacote ) == true
-            )
-            {
-                return true;
-            }
+        if (
+            this.listaDeACKdePacotes.firstKey() > this.baseDaJanelaAnteriorDeCongestionamento
+        )
+        {
+                    
+            System.out.println( 
+                this.getDenominacao() 
+                    + ": VERIFICACAO true - FIRST KEY " + this.listaDeACKdePacotes.firstKey() + " " + this.baseDaJanelaAnteriorDeCongestionamento
+            );
+            return true;
+        }
+        else {
             
+            for ( int numPacote : this.listaDeACKdePacotes.keySet() )
+            {
+
+                if ( 
+                    numPacote > 
+                    this.baseDaJanelaAnteriorDeCongestionamento + this.janelaDePctEnviadosDeCongestionamento 
+                )
+                {
+                    System.out.println( 
+                        this.getDenominacao() 
+                            + ": VERIFICACAO false - ESTOURO " + numPacote + " " + this.baseDaJanelaAnteriorDeCongestionamento + "+" + this.janelaDePctEnviadosDeCongestionamento
+                    );
+                    return false;
+                }
+                else if (
+                    numPacote >= this.baseDaJanelaAnteriorDeCongestionamento
+                    && this.listaDeACKdePacotes.get( numPacote ) == true 
+                )
+                {
+                    
+                    System.out.println( 
+                        this.getDenominacao() 
+                            + ": VERIFICACAO true - RECEIVED PCK " + numPacote
+                    );
+                    return true;
+                }
+
+            }
+
         }
 
+                    
+        System.out.println( 
+            this.getDenominacao() 
+                + ": VERIFICACAO false - ???????? failsafe"
+        );
         return false;
 
     }
 
-    SortedMap.Entry<Integer,byte[]> obterPacoteEmTimeout ()
-        throws Exception
+    void configureBaseDaJanelaDeCongestionamento ( 
+        int base,
+        int janelaAtual
+    ) 
     {
-
-        int numDoPacote = this.listaDePacotesEmTimeout.firstKey();
-
-        byte[] pacote = this.listaDePacotesEmTimeout.remove(
-            this.listaDePacotesEmTimeout.firstKey()  
-        );
-
-        return new AbstractMap.SimpleEntry<Integer, byte[]>(
-            numDoPacote,
-            pacote
-        );
-        
-    }
-
-    void incrementeProxNumDaSequenciaDePacotes () 
-        throws Exception
-    {
-        this.proxNumDaSequenciaDePacotes++;
-    }
-
-    void atualizarJanela ( int numDeACK ) 
-        throws Exception
-    {
-
-        if ( this.listaDeACKdePacotes.containsKey( numDeACK ) ) {
-            this.listaDeACKdePacotes.put( numDeACK, true );
-        }
-        else {
-            // DISCARD OLD ACK
-        }
-
-        if ( numDeACK == this.baseDeEnvio )
-        {
-
-            boolean foiAtualizado = false;
-            while ( ! foiAtualizado ) 
-            {
-            
-                if ( this.listaDeACKdePacotes.get( this.baseDeEnvio ) == true )
-                {
-
-                    this.listaDeACKdePacotes.remove( this.baseDeEnvio );
-                    this.listaDeACKdePacotes.put( 
-                        this.baseDeEnvio + this.tamanhoDeJanelaDePacotes,
-                        false
-                    );
-                    this.baseDeEnvio++;
-
-                }
-                else
-                {
-                    foiAtualizado = true;
-                }
-            
-            }
-
-        }
-
-    }
-
-    void adicioneTimeout ( int numDoPacote, byte[] pacote )
-        throws Exception
-    {
-
-        this.listaDeTimersCorrentes.put( numDoPacote, new Timer() );
-
-        this.listaDeTimerTasksCorrentes.put( 
-            numDoPacote,
-            new TimeoutTask( this, numDoPacote, pacote ) 
-        );
-
-        Timer timer = this.listaDeTimersCorrentes.get( numDoPacote );
-
-        timer.schedule( 
-            this.listaDeTimerTasksCorrentes.remove( numDoPacote ),
-            tempoDeTimeoutDePacote 
-        );
-
-    }
-
-    void removeTimeoutTask ( int numPacote )
-        throws Exception
-    {
-
-        if ( 
-            this.listaDeTimersCorrentes.containsKey( numPacote ) 
-        )
-        {
-
-            TimerTask task = this.listaDeTimerTasksCorrentes.get( numPacote );
-            if ( task != null )
-            {
-                task.cancel();
-            }
-
-            Timer timer = this.listaDeTimersCorrentes.get( numPacote );
-            timer.cancel();
-
-            this.listaDeTimerTasksCorrentes.remove( numPacote );
-            this.listaDeTimersCorrentes.remove( numPacote );
-
-        }
-
-    }
-
-    void enviePacote ( byte[] pacote )
-        throws Exception
-    {
-                        
-        DatagramPacket pacoteDeEnvio =
-            new DatagramPacket(
-                pacote, 
-                pacote.length,
-                this.roteador.getEnderecoIP(),
-                this.roteador.getPorta()
-            );
-
-        sleep( this.atrasoDeTransmissao );
-
-        if( 
-            Math.random() < ( 1 - this.probabilidadeDePerda )
-        )
-        {
-
-            if ( ! socket.isClosed() )
-            {
-                this.socket.send( pacoteDeEnvio );
-            }
-
-        }
-
-    }
-
-    void adicionarNaListaDePacotesEmTimeout ( int numPacote, byte[] pacote )
-        throws Exception
-    {
-
-        if ( numPacote >= this.baseDeEnvio )
-        {
-            this.listaDePacotesEmTimeout.put( numPacote, pacote );
-        }
-
-    }
-
-    boolean existemPacotesEmTimeout () 
-        throws Exception
-    {
-        return this.listaDePacotesEmTimeout.size() > 0;
-    }
-
-    void sinalizarTerminoDaTransferencia () 
-    {
-        this.aTransferenciaTerminou = true;
+        this.baseDaJanelaAnteriorDeCongestionamento = base;
+        this.janelaDePctEnviadosDeCongestionamento = janelaAtual;
     }
 
     void esvaziarListaDeTimeouts ()
         throws Exception
     {
-        this.listaDeTimerTasksCorrentes.forEach( 
-            (k, v) -> {
-                if ( v != null )
-                {
-                    v.cancel();
-                }
-            }
-        );
-        this.listaDeTimersCorrentes.forEach( 
+        this.listaDeTimerTasksCorrentes.forEach(
             (k, v) -> {
                 if ( v != null )
                 {
@@ -489,6 +353,16 @@ public class UDPdoCliente
             }
         );
         this.listaDeTimerTasksCorrentes.clear();
+
+        this.listaDeTimersCorrentes.forEach( 
+            (k, v) -> {
+                if ( v != null )
+                {
+                    v.cancel();
+                    v.purge();
+                }
+            }
+        );
         this.listaDeTimersCorrentes.clear();
     }
 
@@ -516,6 +390,144 @@ public class UDPdoCliente
         int janelaAtual = this.janelaDeCongestionamento;
         this.limiteDePartidaLenta = janelaAtual / 2;
         this.janelaDeCongestionamento = 1;
+
+    }
+
+    SortedMap.Entry<Integer, byte[]> removerPacoteEmTimeout () {
+        int numPacote = this.pacotesEmTimeout.firstKey();
+        byte[] pacote = this.pacotesEmTimeout.remove( numPacote );
+        return new AbstractMap.SimpleEntry<Integer, byte[]>(
+            numPacote, 
+            pacote
+        );
+    }
+
+    boolean existemPacotesEmTimeout () {
+        return this.pacotesEmTimeout.size() > 0;
+    }
+
+    void adicionarPacoteEmTimeout( int numPacote, byte[] pacote ) 
+    {
+        this.pacotesEmTimeout.put( numPacote, pacote );
+    }
+
+    void adicionarTimeout ( int numDoPacote, byte[] pacote )
+        throws Exception
+    {
+
+        Timer timer = new Timer();
+        TimerTask task = new TimeoutTask( this, numDoPacote, pacote );
+        timer.schedule( task, this.tempoDeTimeoutDePacote );
+
+        this.listaDeTimerTasksCorrentes.put( numDoPacote, task );
+        this.listaDeTimersCorrentes.put( numDoPacote, timer );
+
+    }
+
+    void removerTimeoutTask ( int numPacote )
+        throws Exception
+    {
+
+        if ( this.listaDeTimersCorrentes.containsKey( numPacote ) )
+        {
+
+            if ( this.listaDeTimerTasksCorrentes.containsKey( numPacote ) )
+            {
+                TimerTask task = this.listaDeTimerTasksCorrentes.get( numPacote );
+                task.cancel();
+            }
+            this.listaDeTimerTasksCorrentes.remove( numPacote );
+
+            Timer timer = this.listaDeTimersCorrentes.get( numPacote );
+            timer.cancel();
+            timer.purge();
+
+            this.listaDeTimersCorrentes.remove( numPacote );
+
+        }
+
+    }
+
+    void atualizarJanelaDeRepeticaoSeletiva ( int numDeACK ) 
+        throws Exception
+    {
+
+        if ( this.listaDeACKdePacotes.containsKey( numDeACK ) ) {
+            this.listaDeACKdePacotes.put( numDeACK, true );
+        }
+        else {
+            // DISCARD OLD ACK
+        }
+
+        if ( numDeACK == this.baseDeEnvio )
+        {
+
+            boolean foiAtualizado = false;
+            while ( ! foiAtualizado ) 
+            {
+            
+                if ( this.listaDeACKdePacotes.get( this.baseDeEnvio ) == true )
+                {
+
+                    this.listaDeACKdePacotes.remove( this.baseDeEnvio );
+                    this.listaDeACKdePacotes.put( 
+                        this.baseDeEnvio + this.tamanhoDeJanelaDeRepeticaoSeletiva,
+                        false
+                    );
+                    this.baseDeEnvio++;
+
+                }
+                else
+                {
+                    foiAtualizado = true;
+                }
+            
+            }
+
+        }
+
+    }
+
+    void adicionarACKaReceber( int numDoPacote ) {
+        this.listaDeACKdePacotes.put( numDoPacote, false );
+    }
+
+    void sinalizarTerminoDaTransferencia () 
+    {
+        this.aTransferenciaTerminou = true;
+    }
+
+    void incrementeProxNumDaSequenciaDePacotes () 
+        throws Exception
+    {
+        this.proxNumDaSequenciaDePacotes++;
+    }
+
+    void enviePacote ( byte[] pacote )
+        throws Exception
+    {
+                        
+        DatagramPacket pacoteDeEnvio =
+            new DatagramPacket(
+                pacote, 
+                pacote.length,
+                this.roteador.getEnderecoIP(),
+                this.roteador.getPorta()
+            );
+
+        sleep( this.atrasoDeTransmissao );
+
+        if( 
+            Math.random() < ( 1 - this.probabilidadeDePerda )
+        )
+        {
+
+            if ( ! socket.isClosed() )
+            {
+                this.socket.send( pacoteDeEnvio );
+            }
+
+        }
 
     }
 
