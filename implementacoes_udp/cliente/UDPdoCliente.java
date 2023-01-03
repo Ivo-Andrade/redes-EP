@@ -184,7 +184,6 @@ public class UDPdoCliente
         this.fimDeTransmissao = System.currentTimeMillis();
 
         reportarTaxaMedia();
-        
     }
 
     private void reportarTaxaMedia() 
@@ -323,6 +322,11 @@ public class UDPdoCliente
         return this.criptografia;
     }
 
+    long getInicioDeTransmissao ()
+    {
+        return this.inicioDeTransmissao;
+    }
+
     /**
      * 
      *      MÉTODOS IMPLEMENTADOS
@@ -335,12 +339,6 @@ public class UDPdoCliente
 
         if ( this.baseDaJanelaAnteriorDeCongestionamento == -1 )
         {
-                    
-            System.out.println( 
-                this.getDenominacao() 
-                    + ": VERIFICACAO true - BASE -1"
-            );
-
             return true;
         }
 
@@ -348,11 +346,6 @@ public class UDPdoCliente
             this.listaDeACKdePacotes.firstKey() > this.baseDaJanelaAnteriorDeCongestionamento
         )
         {
-                    
-            System.out.println( 
-                this.getDenominacao() 
-                    + ": VERIFICACAO true - FIRST KEY " + this.listaDeACKdePacotes.firstKey() + " " + this.baseDaJanelaAnteriorDeCongestionamento
-            );
             return true;
         }
         else {
@@ -365,10 +358,6 @@ public class UDPdoCliente
                     this.baseDaJanelaAnteriorDeCongestionamento + this.janelaDePctEnviadosDeCongestionamento 
                 )
                 {
-                    System.out.println( 
-                        this.getDenominacao() 
-                            + ": VERIFICACAO false - ESTOURO " + numPacote + " " + this.baseDaJanelaAnteriorDeCongestionamento + "+" + this.janelaDePctEnviadosDeCongestionamento
-                    );
                     return false;
                 }
                 else if (
@@ -376,11 +365,6 @@ public class UDPdoCliente
                     && this.listaDeACKdePacotes.get( numPacote ) == true 
                 )
                 {
-                    
-                    System.out.println( 
-                        this.getDenominacao() 
-                            + ": VERIFICACAO true - RECEIVED PCK " + numPacote
-                    );
                     return true;
                 }
 
@@ -388,11 +372,6 @@ public class UDPdoCliente
 
         }
 
-                    
-        System.out.println( 
-            this.getDenominacao() 
-                + ": VERIFICACAO false - ???????? failsafe"
-        );
         return false;
 
     }

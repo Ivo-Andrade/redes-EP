@@ -1,7 +1,11 @@
 package implementacoes_udp.cliente;
 
+import java.io.BufferedWriter;
 // import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 // import java.io.File;
 // import java.io.FileWriter;
 import java.io.InputStream;
@@ -17,6 +21,8 @@ public class ThreadDeSaida
     private final UDPdoCliente udp;
                 
     private boolean acabouCriacaoDePacotes;
+
+    private File outputDaJanelaDeCongestionamento;
 
     public ThreadDeSaida (
         UDPdoCliente udp
@@ -59,6 +65,8 @@ public class ThreadDeSaida
 
             udp.setInicioDeTransmissao();
 
+            iniciarOutputDaJanelaDeCongestionamento();
+
             while ( ! udp.aTransferenciaTerminou() )
             {
 
@@ -87,6 +95,8 @@ public class ThreadDeSaida
                     udp.adicionarTimeout( pacoteParaEnvio.getKey() , pacoteParaEnvio.getValue() );
 
                     udp.configureBaseDaJanelaDeCongestionamento( pacoteParaEnvio.getKey(), 1 );
+
+                    marcarRecuperacaoRapidaNoOutputDaJanelaDeCongestionamento();
 
                     System.out.println( "RECUPERACAO RAPIDA - FIM " + pacoteParaEnvio.getKey() + " " + 1 );
 
@@ -148,6 +158,8 @@ public class ThreadDeSaida
                     }
 
                     udp.configureBaseDaJanelaDeCongestionamento( base, janelaAtual );
+
+                    marcarTransmissaoNaJanelaDeCongestionamento( udp.getJanelaDeCongestionamento(), janelaAtual );
     
                     System.out.println( "JANELA DE CONGESTIONAMENTO - FIM - " + base + " " + janelaAtual );
 
@@ -159,144 +171,6 @@ public class ThreadDeSaida
                 udp.getSemaforoDeCongestionamento().release();
 
                 sleep( 5 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-
-                // if (
-                //     (
-                //         ! udp.existemPacotesEmTimeout()
-                //         && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
-                //     )
-                // ) {
-
-                //     if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
-                //     {
-                //         udp.getSemaforoDasVars().release();
-                //         continue;
-                //     }
-                    
-                // }
-
-                // if ( udp.existemPacotesEmTimeout() )
-                // {
-
-                //     udp.reduzaJanelaDeCongestionamento();
-    
-                //     System.out.println( 
-                //         udp.getDenominacao() 
-                //         + ": ------------------------------------------ TIMEOUT "
-                //         + udp.getJanelaDeCongestionamento()
-                //     );
-
-                //     Entry<Integer, byte[]> pacote = udp.obterPacoteEmTimeout();
-
-                //     udp.enviePacote( pacote.getValue() );
-
-                //     System.out.println( 
-                //         udp.getDenominacao()
-                //         + ": Re-envio do pacote em timeout " 
-                //         + pacote.getKey()
-                //     );
-
-                //     udp.adicioneTimeout( 
-                //         pacote.getKey(),
-                //         pacote.getValue()
-                //     );
-
-                // } 
-                // else if ( 
-                //     udp.verificarACKdaJanelaDeCongestionamentoAnterior() 
-                //     || ! primeiroEnvioRealizado
-                // )
-                // {
-
-                //     if ( this.acabouCriacaoDePacotes )
-                //     {
-                //         continue;
-                //     }
-
-                //     if ( udp.getTamanhoDeJanelaDePacotes() > udp.getJanelaDeCongestionamento() ) 
-                //     {
-                //         udp.incrementeJanelaDeCongestionamento();
-                //     }
-
-                //     udp.configureBaseDaJanelaDeCongestionamento( 
-                //         udp.getProxNumDaSequenciaDePacotes(),
-                //         udp.getJanelaDeCongestionamento()
-                //     );
-    
-                //     System.out.println( 
-                //         udp.getDenominacao() 
-                //         + ": ------------------------------------------ INICIO DE JANELA "
-                //         + udp.getJanelaDeCongestionamento()
-                //     );
-    
-                //     for ( 
-                //         int i = udp.getBaseDaJanelaDeCongestionamento(); 
-                //         i < udp.getBaseDaJanelaDeCongestionamento() + udp.getJanelaDeCongestionamento(); 
-                //         i++
-                //     ) {
-    
-                //         if (
-                //             ! this.acabouCriacaoDePacotes
-                //             && udp.getProxNumDaSequenciaDePacotes()
-                //             < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDePacotes()
-                //         )
-                //         {
-        
-                //             byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
-        
-                //             udp.enviePacote( pacoteParaEnvio );
-
-                //             primeiroEnvioRealizado = true;
-        
-                //             System.out.println( 
-                //                 udp.getDenominacao() 
-                //                 + ": Envio do pacote " 
-                //                 + udp.getProxNumDaSequenciaDePacotes() 
-                //             );
-        
-                //             udp.adicioneTimeout( 
-                //                 udp.getProxNumDaSequenciaDePacotes(),
-                //                 pacoteParaEnvio
-                //             );
-        
-                //             udp.incrementeProxNumDaSequenciaDePacotes();
-        
-                //         }
-                        
-                //     }
-        
-                //     System.out.println( 
-                //         udp.getDenominacao() 
-                //         + ": ------------------------------------------ FIM DE JANELA"
-                //     );
-
-                // }
-
-                // udp.getSemaforoDasVars().release();
                 
             }
 
@@ -306,6 +180,95 @@ public class ThreadDeSaida
             e.printStackTrace();
             System.exit( -1 );
         }
+
+    }
+
+    private void iniciarOutputDaJanelaDeCongestionamento() 
+        throws Exception
+    {
+
+        for ( int i = 1; i < 100; i++ ) {
+
+            String path = 
+                "resultados" 
+                + File.separator 
+                + "janelas_de_congestionamento" 
+                + File.separator 
+                + udp.getDenominacao()
+                + "_"
+                + i
+                + ".txt";
+            
+            File f = new File( path );
+            if( ! f.exists() && ! f.isDirectory() ) { 
+
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+
+                this.outputDaJanelaDeCongestionamento = f;
+        
+                BufferedWriter writer = 
+                new BufferedWriter( 
+                    new FileWriter(
+                        new File ( path )
+                    ) 
+                );
+                writer.write( "Tempo (s),Janela de congestionamento,Pacotes enviados\n" );
+                writer.write( "0,0,0\n" );
+                writer.close();
+
+                break;
+            }
+            
+        }
+        
+    }
+
+    private void marcarTransmissaoNaJanelaDeCongestionamento ( 
+        int janelaDeCongestionamento, int janelaAtual 
+    ) 
+        throws Exception 
+    {
+
+        double tempoAtual = System.currentTimeMillis() - udp.getInicioDeTransmissao();
+
+        FileWriter fw = new FileWriter( 
+            this.outputDaJanelaDeCongestionamento.getAbsolutePath(), 
+            true
+        );
+        BufferedWriter bw = new BufferedWriter( fw );
+        bw.write(
+            tempoAtual 
+            + ","
+            + janelaDeCongestionamento
+            + ","
+            + janelaAtual
+        );
+        bw.newLine();
+        bw.close();
+
+    }
+
+    private void marcarRecuperacaoRapidaNoOutputDaJanelaDeCongestionamento() 
+        throws Exception 
+    {
+
+        double tempoAtual = System.currentTimeMillis() - udp.getInicioDeTransmissao();
+
+        FileWriter fw = new FileWriter( 
+            this.outputDaJanelaDeCongestionamento.getAbsolutePath(), 
+            true
+        );
+        BufferedWriter bw = new BufferedWriter( fw );
+        bw.write(
+            tempoAtual 
+            + ","
+            + 1
+            + ","
+            + 1
+        );
+        bw.newLine();
+        bw.close();
 
     }
 

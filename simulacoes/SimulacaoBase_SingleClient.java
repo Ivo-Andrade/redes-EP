@@ -113,7 +113,7 @@ public class SimulacaoBase_SingleClient
                 1,
                 cliente,
                 roteador,
-                10000
+                1000000
             );
 
         maquinaCliente.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaJanelaDeRepeticaoSeletiva );
