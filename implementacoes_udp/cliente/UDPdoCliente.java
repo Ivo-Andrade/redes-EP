@@ -63,8 +63,8 @@ public class UDPdoCliente
 
     private CriptografiaAES criptografia;
 
-    private long inicioDeTransmissao;
-    private long fimDeTransmissao;
+    private double inicioDeTransmissao;
+    private double fimDeTransmissao;
 
     /**
      * 
@@ -190,10 +190,10 @@ public class UDPdoCliente
         throws Exception
     {
 
-        double tempoDeTransmissao = this.fimDeTransmissao - this.inicioDeTransmissao;
+        double tempoDeTransmissao = ( this.fimDeTransmissao - this.inicioDeTransmissao ) / 1000;
         double taxaMediaTransmissao = ( 
             this.mensagemDeEnvio.getBytes().length
-            / tempoDeTransmissao ) * 1000;
+            / tempoDeTransmissao );
 
         for ( int i = 1; i < 100; i++ ) {
 
@@ -219,9 +219,9 @@ public class UDPdoCliente
                         new File ( path )
                     ) 
                 );
-                writer.write( "TEMPO TOTAL (ms): " + tempoDeTransmissao + "\n" );
+                writer.write( "TEMPO TOTAL (s): " + tempoDeTransmissao + "\n" );
                 writer.write( "TAMANHO DA MENSAGEM (b): " + this.mensagemDeEnvio.getBytes().length + "\n" );
-                writer.write( "TAXA MÉDIA DE TRANSMISSAO (b/s): " + taxaMediaTransmissao + "\n" );
+                writer.write( "TAXA MEDIA DE TRANSMISSAO (b/s): " + taxaMediaTransmissao + "\n" );
                 writer.close();
 
                 break;
@@ -322,7 +322,7 @@ public class UDPdoCliente
         return this.criptografia;
     }
 
-    long getInicioDeTransmissao ()
+    double getInicioDeTransmissao ()
     {
         return this.inicioDeTransmissao;
     }

@@ -10,6 +10,7 @@ import java.io.IOException;
 // import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map.Entry;
 
 import pacotes.GerenciadorDePacote;
@@ -189,7 +190,7 @@ public class ThreadDeSaida
                 + udp.getDenominacao()
                 + "_"
                 + i
-                + ".txt";
+                + ".tsv";
             
             File f = new File( path );
             if( ! f.exists() && ! f.isDirectory() ) { 
@@ -205,8 +206,8 @@ public class ThreadDeSaida
                         new File ( path )
                     ) 
                 );
-                writer.write( "Tempo (s),Janela de congestionamento,Pacotes enviados\n" );
-                writer.write( "0,0,0\n" );
+                writer.write( "Tempo (s)\tJanela de congestionamento\tPacotes enviados\n" );
+                writer.write( "0\t0\t0\n" );
                 writer.close();
 
                 break;
@@ -230,10 +231,12 @@ public class ThreadDeSaida
         );
         BufferedWriter bw = new BufferedWriter( fw );
         bw.write(
-            tempoAtual 
-            + ","
+            String.format(
+                Locale.GERMAN, "%,.3f", tempoAtual
+            ) 
+            + "\t"
             + janelaDeCongestionamento
-            + ","
+            + "\t"
             + janelaAtual
         );
         bw.newLine();
@@ -253,10 +256,12 @@ public class ThreadDeSaida
         );
         BufferedWriter bw = new BufferedWriter( fw );
         bw.write(
-            tempoAtual 
-            + ","
+            String.format(
+                Locale.GERMAN, "%,.3f", tempoAtual
+            ) 
+            + "\t"
             + 1
-            + ","
+            + "\t"
             + 1
         );
         bw.newLine();

@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 
@@ -34,7 +35,7 @@ public class UDPdeRoteador
     private ThreadDeEntrada threadDeEntrada;
     private ThreadDeSaida threadDeSaida;
 
-    private long inicioDeFuncionamento;
+    private double inicioDeFuncionamento;
     private File outputDaFilaDeRoteador;
 
     /**
@@ -157,7 +158,7 @@ public class UDPdeRoteador
                 + this.getDenominacao()
                 + "_"
                 + i
-                + ".txt";
+                + ".tsv";
             
             File f = new File( path );
             if( ! f.exists() && ! f.isDirectory() ) { 
@@ -173,8 +174,8 @@ public class UDPdeRoteador
                         new File ( path )
                     ) 
                 );
-                writer.write( "Tempo (s),Tamanho da Fila\n" );
-                writer.write( "0,0\n" );
+                writer.write( "Tempo (s)\tTamanho da Fila\n" );
+                writer.write( "0\t0\n" );
                 writer.close();
 
                 break;
@@ -185,9 +186,10 @@ public class UDPdeRoteador
     }
 
     void registrarOutputFilaDoRoteador ()
+        throws Exception
     {
 
-        double tempoAtual = ( System.currentTimeMillis() - udp.getInicioDeTransmissao() ) / 1000 ;
+        double tempoAtual = ( System.currentTimeMillis() - this.inicioDeFuncionamento ) / 1000 ;
 
         FileWriter fw = new FileWriter( 
             this.outputDaFilaDeRoteador.getAbsolutePath(), 
@@ -195,8 +197,10 @@ public class UDPdeRoteador
         );
         BufferedWriter bw = new BufferedWriter( fw );
         bw.write(
-            tempoAtual 
-            + ","
+            String.format(
+                Locale.GERMAN, "%,.3f", tempoAtual
+            )
+            + "\t"
             + this.bufferDePacotes.size()
         );
         bw.newLine();

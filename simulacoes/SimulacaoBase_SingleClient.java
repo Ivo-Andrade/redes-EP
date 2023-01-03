@@ -19,12 +19,12 @@ public class SimulacaoBase_SingleClient
         // Definições gerais de váriaveis
 
         int tamanhoDoPacote = 1000;
-        int tempoDeTimeoutDoCliente = 300;
+        int tempoDeTimeoutDoCliente = 500;
 
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 128 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 32 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
 
