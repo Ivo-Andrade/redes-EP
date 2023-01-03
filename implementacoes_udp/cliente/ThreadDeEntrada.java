@@ -35,10 +35,9 @@ public class ThreadDeEntrada
 
                 udp.getSocket().receive( pacoteDeEntrada );
 
-                if ( this.atrasoDePropagacao > 0 ) 
-                {
-                    sleep( this.atrasoDePropagacao );
-                }
+                udp.getSemaforoDasVars().acquire();
+
+                sleep( this.atrasoDePropagacao );
                 
                 int numDeACK = 
                     GerenciadorDePacote.decodificarNumDoPacote( dadosDeEntrada );
@@ -59,6 +58,8 @@ public class ThreadDeEntrada
                 {
                     udp.atualizarJanela( numDeACK );
                 }
+
+                udp.getSemaforoDasVars().release();
 
             }
 

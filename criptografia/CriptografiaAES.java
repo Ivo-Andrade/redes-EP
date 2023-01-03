@@ -23,10 +23,8 @@ public class CriptografiaAES {
         throws Exception
     {
 
-        MessageDigest sha = null;
-
         chave = valorDaChave.getBytes( CHARSET );
-        sha = MessageDigest.getInstance( ALGORITMO_MSG_DIGEST );
+        MessageDigest sha = MessageDigest.getInstance( ALGORITMO_MSG_DIGEST );
         chave = sha.digest( chave );
         chave = Arrays.copyOf( chave, 16 );
         chaveSecreta = new SecretKeySpec( chave, ALGORITMO_CHAVE_SECRETA );

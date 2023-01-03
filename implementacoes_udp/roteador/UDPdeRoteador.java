@@ -212,13 +212,7 @@ public class UDPdeRoteador
         throws Exception
     {
 
-        if ( this.atrasosDeTransmissao.get( idMaquina ) > 0 ) 
-        {
-            sleep( 
-                this.atrasosDeTransmissao.get( idMaquina )
-                * length
-            );
-        }
+        sleep( this.atrasosDeTransmissao.get( idMaquina ) );
 
         if( 
             Math.random() < ( 1 - this.probabilidadesDePerda.get( idMaquina ) )

@@ -34,10 +34,7 @@ public class ThreadDeEntrada
 
                 udp.getSocket().receive( pacoteDeEntrada );
 
-                if ( this.atrasoDePropagacao > 0 )
-                {
-                    sleep( this.atrasoDePropagacao );
-                }
+                sleep( this.atrasoDePropagacao );
                 
                 if ( GerenciadorDePacote.verificarPacote( dadosDeEntrada, pacoteDeEntrada.getLength() ) )
                 {

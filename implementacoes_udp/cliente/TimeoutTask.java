@@ -27,7 +27,9 @@ public class TimeoutTask
         
         try 
         {
+            udp.getSemaforoDasVars().acquire();
             udp.adicionarNaListaDePacotesEmTimeout ( numPacote, pacote );
+            udp.getSemaforoDasVars().release();
         } 
         catch ( Exception e ) 
         {

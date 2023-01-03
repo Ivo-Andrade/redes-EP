@@ -319,13 +319,7 @@ public class UDPdoServidor
                 this.roteador.getPorta()
             );
 
-        if ( this.atrasoDeTransmissao > 0 ) 
-        {
-            sleep( 
-                this.atrasoDeTransmissao
-                * pacote.length
-            );
-        }
+        sleep( this.atrasoDeTransmissao );
 
         if( 
             Math.random() < ( 1 - this.probabilidadeDePerda )

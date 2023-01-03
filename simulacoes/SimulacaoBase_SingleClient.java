@@ -9,22 +9,22 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase 
+public class SimulacaoBase_SingleClient 
 {
 
-    public static void main ( String[] args )
+    public static void main ( String[] args ) 
         throws Exception
     {
-
+            
         // Definições gerais de váriaveis
 
         int tamanhoDoPacote = 1000;
-        int tempoDeTimeoutDoCliente = 1000;
+        int tempoDeTimeoutDoCliente = 300;
 
-        // Nota: Valor máximo recomendado de 1000 pacotes, 
+        // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaFilaDePacotesNoCliente = ( 1000 );
+        int tamanhoDaFilaDePacotesNoCliente = ( 32 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
         int tamanhoDoBufferDeRecepcaoNoServidor = ( Integer.MAX_VALUE );
@@ -47,7 +47,6 @@ public class SimulacaoBase
                 9555
             );
 
-        
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
                 "simulacao_base-Cliente",
@@ -60,6 +59,7 @@ public class SimulacaoBase
 
         // Definição de variáveis
 
+        // TODO: Propagation delays not working properly 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
         atrasosDePropagacao.put( 0, 0 );
         atrasosDePropagacao.put( 1, 0 );
@@ -69,8 +69,8 @@ public class SimulacaoBase
         atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0.0 );
-        probabilidadesDePerda.put( 1, 0.0 );
+        probabilidadesDePerda.put( 0, 0.1 );
+        probabilidadesDePerda.put( 1, 0.1 );
 
         // Definição de máquinas
         
@@ -126,7 +126,7 @@ public class SimulacaoBase
         maquinaCliente.setProbabilidadeDePerda( probabilidadesDePerda.get( 1 ) );
 
         maquinaCliente.run();
-
+   
     }
     
 }

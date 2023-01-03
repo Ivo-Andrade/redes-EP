@@ -33,17 +33,17 @@ public class UDPdoCliente
     private double probabilidadeDePerda;
 
     private int tempoDeTimeoutDePacote;
+    
+    private Semaphore semaforoDasVars;
 
     private int janelaDeCongestionamento;
     private int baseDaJanelaDeCongestionamento;
     private int limiteDePartidaLenta;
     
-    private Semaphore semaforoDasVarsDeFluxo;
     private int baseDeEnvio;
     private int proxNumDaSequenciaDePacotes;
     private SortedMap<Integer,Boolean> listaDeACKdePacotes;
 
-    private Semaphore semaforoDasVarsDeTimeout;
     private SortedMap<Integer,Timer> listaDeTimersCorrentes;
     private SortedMap<Integer,TimerTask> listaDeTimerTasksCorrentes;
     private SortedMap<Integer,byte[]> listaDePacotesEmTimeout;
@@ -110,8 +110,7 @@ public class UDPdoCliente
         this.listaDeTimerTasksCorrentes = new TreeMap<Integer,TimerTask>();
         this.listaDePacotesEmTimeout = new TreeMap<Integer,byte[]>();
 
-        this.semaforoDasVarsDeFluxo = new Semaphore( 1 );
-        this.semaforoDasVarsDeTimeout = new Semaphore( 1 );
+        this.semaforoDasVars = new Semaphore( 1 );
 
         this.aTransferenciaTerminou = false;
 
@@ -245,14 +244,9 @@ public class UDPdoCliente
         return this.proxNumDaSequenciaDePacotes;
     }
     
-    Semaphore getSemaforoDasVarsDeFluxo () 
+    Semaphore getSemaforoDasVars () 
     {
-        return this.semaforoDasVarsDeFluxo;
-    }
-    
-    Semaphore getSemaforoDasVarsDeTimeout () 
-    {
-        return this.semaforoDasVarsDeTimeout;
+        return this.semaforoDasVars;
     }
     
     boolean aTransferenciaTerminou () 
@@ -284,12 +278,10 @@ public class UDPdoCliente
         throws Exception
     {
         
-        this.semaforoDasVarsDeFluxo.acquire();
         if (
             this.listaDeACKdePacotes.firstKey() > this.baseDaJanelaDeCongestionamento
         )
         {
-            this.semaforoDasVarsDeFluxo.release();
             return true;
         }
     
@@ -302,7 +294,6 @@ public class UDPdoCliente
                 && this.listaDeACKdePacotes.get( numPacote ) == true
             )
             {
-                this.semaforoDasVarsDeFluxo.release();
                 return true;
             }
             else if 
@@ -311,13 +302,11 @@ public class UDPdoCliente
                 && this.listaDeACKdePacotes.get( numPacote ) == true
             )
             {
-                this.semaforoDasVarsDeFluxo.release();
                 return true;
             }
             
         }
 
-        this.semaforoDasVarsDeFluxo.release();
         return false;
 
     }
@@ -326,15 +315,11 @@ public class UDPdoCliente
         throws Exception
     {
 
-        this.semaforoDasVarsDeTimeout.acquire();
-
         int numDoPacote = this.listaDePacotesEmTimeout.firstKey();
 
         byte[] pacote = this.listaDePacotesEmTimeout.remove(
             this.listaDePacotesEmTimeout.firstKey()  
         );
-
-        this.semaforoDasVarsDeTimeout.release();
 
         return new AbstractMap.SimpleEntry<Integer, byte[]>(
             numDoPacote,
@@ -346,18 +331,19 @@ public class UDPdoCliente
     void incrementeProxNumDaSequenciaDePacotes () 
         throws Exception
     {
-        this.semaforoDasVarsDeFluxo.acquire();
         this.proxNumDaSequenciaDePacotes++;
-        this.semaforoDasVarsDeFluxo.release();
     }
 
     void atualizarJanela ( int numDeACK ) 
         throws Exception
     {
 
-        this.semaforoDasVarsDeFluxo.acquire();
-
-        this.listaDeACKdePacotes.put( numDeACK, true );
+        if ( this.listaDeACKdePacotes.containsKey( numDeACK ) ) {
+            this.listaDeACKdePacotes.put( numDeACK, true );
+        }
+        else {
+            // DISCARD OLD ACK
+        }
 
         if ( numDeACK == this.baseDeEnvio )
         {
@@ -386,15 +372,11 @@ public class UDPdoCliente
 
         }
 
-        this.semaforoDasVarsDeFluxo.release();
-
     }
 
     void adicioneTimeout ( int numDoPacote, byte[] pacote )
         throws Exception
     {
-
-        this.semaforoDasVarsDeTimeout.acquire();
 
         this.listaDeTimersCorrentes.put( numDoPacote, new Timer() );
 
@@ -410,15 +392,11 @@ public class UDPdoCliente
             tempoDeTimeoutDePacote 
         );
 
-        this.semaforoDasVarsDeTimeout.release();
-
     }
 
     void removeTimeoutTask ( int numPacote )
         throws Exception
     {
-
-        this.semaforoDasVarsDeTimeout.acquire();
 
         if ( 
             this.listaDeTimersCorrentes.containsKey( numPacote ) 
@@ -439,8 +417,6 @@ public class UDPdoCliente
 
         }
 
-        this.semaforoDasVarsDeTimeout.release();
-
     }
 
     void enviePacote ( byte[] pacote )
@@ -455,13 +431,7 @@ public class UDPdoCliente
                 this.roteador.getPorta()
             );
 
-        if ( this.atrasoDeTransmissao > 0 ) 
-        {
-            sleep( 
-                this.atrasoDeTransmissao
-                * pacote.length
-            );
-        }
+        sleep( this.atrasoDeTransmissao );
 
         if( 
             Math.random() < ( 1 - this.probabilidadeDePerda )
@@ -481,26 +451,17 @@ public class UDPdoCliente
         throws Exception
     {
 
-        this.semaforoDasVarsDeFluxo.acquire();
-
         if ( numPacote >= this.baseDeEnvio )
         {
-            this.semaforoDasVarsDeTimeout.acquire();
             this.listaDePacotesEmTimeout.put( numPacote, pacote );
-            this.semaforoDasVarsDeTimeout.release();
         }
-
-        this.semaforoDasVarsDeFluxo.release();
 
     }
 
     boolean existemPacotesEmTimeout () 
         throws Exception
     {
-        this.semaforoDasVarsDeTimeout.acquire();
-        boolean bool = this.listaDePacotesEmTimeout.size() > 0;
-        this.semaforoDasVarsDeTimeout.release();
-        return bool;
+        return this.listaDePacotesEmTimeout.size() > 0;
     }
 
     void sinalizarTerminoDaTransferencia () 
@@ -511,9 +472,6 @@ public class UDPdoCliente
     void esvaziarListaDeTimeouts ()
         throws Exception
     {
-
-        this.semaforoDasVarsDeTimeout.acquire();
-
         this.listaDeTimerTasksCorrentes.forEach( 
             (k, v) -> {
                 if ( v != null )
@@ -532,9 +490,6 @@ public class UDPdoCliente
         );
         this.listaDeTimerTasksCorrentes.clear();
         this.listaDeTimersCorrentes.clear();
-
-        this.semaforoDasVarsDeTimeout.release();
-
     }
 
     void incrementeJanelaDeCongestionamento () 
@@ -574,7 +529,7 @@ public class UDPdoCliente
             this.socket = new DatagramSocket( this.cliente.getPorta() );
                 
             this.threadDeSaida = new ThreadDeSaida( this );
-            this.threadDeEntrada = new ThreadDeEntrada( this, atrasoDePropagacao );
+            this.threadDeEntrada = new ThreadDeEntrada( this, this.atrasoDePropagacao );
     
             this.threadDeSaida.start();
             this.threadDeEntrada.start();

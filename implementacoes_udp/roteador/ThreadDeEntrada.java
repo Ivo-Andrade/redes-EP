@@ -40,11 +40,7 @@ public class ThreadDeEntrada
 
                     int idDoRemetente = GerenciadorDePacote.decodificarIdDoRemetente( dadosDeEntrada );
 
-                    if ( this.atrasosDePropagacao.get( idDoRemetente ) > 0 )
-                    {
-                        sleep( this.atrasosDePropagacao.get( idDoRemetente ) );
-                    }
-
+                    sleep( this.atrasosDePropagacao.get( idDoRemetente ) );
 
                     udp.adicionarPacoteAoBuffer( pacoteDeEntrada );
                 }

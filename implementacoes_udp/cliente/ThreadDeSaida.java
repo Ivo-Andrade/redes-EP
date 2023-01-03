@@ -60,6 +60,8 @@ public class ThreadDeSaida
             while ( ! udp.aTransferenciaTerminou() )
             {
 
+                udp.getSemaforoDasVars().acquire();
+
                 if (
                     (
                         ! udp.existemPacotesEmTimeout()
@@ -69,6 +71,7 @@ public class ThreadDeSaida
 
                     if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
                     {
+                        udp.getSemaforoDasVars().release();
                         continue;
                     }
                     
@@ -77,7 +80,11 @@ public class ThreadDeSaida
                 if (
                     ! udp.existemPacotesEmTimeout()
                 ) {
-                    udp.incrementeJanelaDeCongestionamento();
+
+                    if ( udp.getTamanhoDeJanelaDePacotes() > udp.getJanelaDeCongestionamento() ) 
+                    {
+                        udp.incrementeJanelaDeCongestionamento();
+                    }
 
                     udp.configureBaseDaJanelaDeCongestionamento( 
                         udp.getProxNumDaSequenciaDePacotes(),
@@ -150,6 +157,8 @@ public class ThreadDeSaida
                     udp.getDenominacao() 
                     + ": ------------------------------------------ FIM DE JANELA"
                 );
+
+                udp.getSemaforoDasVars().release();
 
                 sleep( 1 );
                 
