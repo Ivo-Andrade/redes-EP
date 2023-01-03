@@ -48,6 +48,7 @@ public class ThreadDeEntrada
 
                 if ( numDeACK == -2 )
                 {
+                    udp.setFimDeTransmissao();
                     udp.sinalizarTerminoDaTransferencia();
                 }
                 else if ( numDeACK != -1 )
@@ -60,7 +61,7 @@ public class ThreadDeEntrada
                     udp.getSemaforoDeFluxo().acquire();
                     udp.atualizarJanelaDeRepeticaoSeletiva( numDeACK );
                     udp.getSemaforoDeFluxo().release();
-                    
+
                 }
 
             }

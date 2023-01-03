@@ -57,49 +57,15 @@ public class ThreadDeSaida
                     mensagemCriptografada.getBytes()
                 );
 
+            udp.setInicioDeTransmissao();
+
             while ( ! udp.aTransferenciaTerminou() )
             {
 
                 udp.getSemaforoDeCongestionamento().acquire();
                 udp.getSemaforoDeReenvios().acquire();
                 udp.getSemaforoDeFluxo().acquire();
-                udp.getSemaforoDeTimeouts().acquire();
-
-                // if (
-                //     (
-                //         ! udp.existemPacotesEmTimeout()
-                //         && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
-                //     )
-                // ) {
-
-                //     if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
-                //     {
-                //         udp.getSemaforoDeTimeouts().release();
-                //         udp.getSemaforoDeFluxo().release();
-                //         udp.getSemaforoDeReenvios().release();
-                //         udp.getSemaforoDeCongestionamento().release();
-                //         continue;
-                //     }
-                    
-                // }
-
-                // if ( udp.existemPacotesEmTimeout() ) 
-                // {
-                //     udp.reduzaJanelaDeCongestionamento();
-                // }
-                // else
-                // {
-                //     if ( udp.getTamanhoDeJanelaDeRepeticaoSeletiva() > udp.getJanelaDeCongestionamento() ) 
-                //     {
-                //         udp.incrementeJanelaDeCongestionamento();
-                //     }
-                // }
-
-                // udp.configureBaseDaJanelaDeCongestionamento( 
-                //     udp.getProxNumDaSequenciaDePacotes()
-                // );
-
-                
+                udp.getSemaforoDeTimeouts().acquire();                
 
                 if ( udp.existemPacotesEmTimeout() )
                 {

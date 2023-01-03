@@ -59,16 +59,16 @@ public class SimulacaoBase_SingleClient
         // Definição de variáveis
 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
-        atrasosDePropagacao.put( 0, 0001 );
-        atrasosDePropagacao.put( 1, 0001 );
+        atrasosDePropagacao.put( 0, 0 );
+        atrasosDePropagacao.put( 1, 0 );
 
         SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
-        atrasosDeTransmissao.put( 0, 0001 );
-        atrasosDeTransmissao.put( 1, 0001 );
+        atrasosDeTransmissao.put( 0, 0 );
+        atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0.01 );
-        probabilidadesDePerda.put( 1, 0.01 );
+        probabilidadesDePerda.put( 0, 0.0 );
+        probabilidadesDePerda.put( 1, 0.0 );
 
         // Definição de máquinas
         

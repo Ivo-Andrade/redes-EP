@@ -1,5 +1,8 @@
 package implementacoes_udp.cliente;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -59,6 +62,9 @@ public class UDPdoCliente
     private ThreadDeSaida threadDeSaida;
 
     private CriptografiaAES criptografia;
+
+    private long inicioDeTransmissao;
+    private long fimDeTransmissao;
 
     /**
      * 
@@ -165,6 +171,65 @@ public class UDPdoCliente
     public void setProbabilidadeDePerda ( double probabilidadeDePerda )
     {
         this.probabilidadeDePerda = probabilidadeDePerda;
+    }
+
+    void setInicioDeTransmissao () 
+    {
+        this.inicioDeTransmissao = System.currentTimeMillis();
+    }
+
+    void setFimDeTransmissao ()
+        throws Exception
+    {
+        this.fimDeTransmissao = System.currentTimeMillis();
+
+        reportarTaxaMedia();
+        
+    }
+
+    private void reportarTaxaMedia() 
+        throws Exception
+    {
+
+        double tempoDeTransmissao = this.fimDeTransmissao - this.inicioDeTransmissao;
+        double taxaMediaTransmissao = ( 
+            this.mensagemDeEnvio.getBytes().length
+            / tempoDeTransmissao ) * 1000;
+
+        for ( int i = 1; i < 100; i++ ) {
+
+            String path = 
+                "resultados" 
+                + File.separator 
+                + "taxas_de_transmissoes" 
+                + File.separator 
+                + this.getDenominacao() 
+                + "_"
+                + i
+                + ".txt";
+            
+            File f = new File( path );
+            if( ! f.exists() && ! f.isDirectory() ) { 
+
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+        
+                BufferedWriter writer = 
+                new BufferedWriter( 
+                    new FileWriter(
+                        new File ( path )
+                    ) 
+                );
+                writer.write( "TEMPO TOTAL (ms): " + tempoDeTransmissao + "\n" );
+                writer.write( "TAMANHO DA MENSAGEM (b): " + this.mensagemDeEnvio.getBytes().length + "\n" );
+                writer.write( "TAXA MÉDIA DE TRANSMISSAO (b/s): " + taxaMediaTransmissao + "\n" );
+                writer.close();
+
+                break;
+            }
+            
+        }
+
     }
 
     /**
