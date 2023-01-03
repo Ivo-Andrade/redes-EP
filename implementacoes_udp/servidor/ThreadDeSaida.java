@@ -58,7 +58,20 @@ public class ThreadDeSaida
 
                     if ( bytesDoPayload.length == 0 )
                     {
+                        udp.salvarTamanhoDoBufferDeMensagem( idDoCliente, numDoPacote );
+                    }
+                    else
+                    {
+                        udp.adicionarMensagemAoBuffer (
+                            idDoCliente,
+                            numDoPacote,
+                            new String( bytesDoPayload )
+                        );
+                    }
 
+                    if ( udp.verificarBufferCompleto( idDoCliente ) )
+                    {
+                        
                         byte[] pacoteDeACK = 
                             GerenciadorDePacote
                                 .construirPacote(
@@ -81,23 +94,17 @@ public class ThreadDeSaida
                         udp.salvarMensagem( idDoCliente );
 
                     }
-                    else
+                    else 
                     {
-
-                        udp.adicionarMensagemAoBuffer (
-                            idDoCliente,
-                            numDoPacote,
-                            new String( bytesDoPayload )
-                        );
-
+                        
                         byte[] pacoteDeACK = 
-                            GerenciadorDePacote
-                                .construirPacote(
-                                    udp.getIdDoServidor(),
-                                    idDoCliente,
-                                    numDoPacote,
-                                    new byte[0]
-                                );
+                        GerenciadorDePacote
+                            .construirPacote(
+                                udp.getIdDoServidor(),
+                                idDoCliente,
+                                numDoPacote,
+                                new byte[0]
+                            );
 
                         udp.enviarPacote( pacoteDeACK );
 

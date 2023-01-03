@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 // import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map.Entry;
 
 import pacotes.GerenciadorDePacote;
 
@@ -56,44 +57,102 @@ public class ThreadDeSaida
                     mensagemCriptografada.getBytes()
                 );
 
-            while ( ! this.acabouCriacaoDePacotes )
+            while ( ! udp.aTransferenciaTerminou() )
             {
 
                 if (
-                    udp.getProxNumDaSequenciaDePacotes()
-                    < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDePacotes()
-                )
-                {
+                    (
+                        ! udp.existemPacotesEmTimeout()
+                        && ! udp.verificarACKdaJanelaDeCongestionamentoAnterior()
+                    )
+                ) {
 
-                    udp.getSemaforoDasVarsDeJanela().acquire();
-
-                    byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
-
-                    udp.enviePacote( pacoteParaEnvio );
-
-                    System.out.println( 
-                        udp.getDenominacao() 
-                        + ": Envio do pacote " 
-                        + udp.getProxNumDaSequenciaDePacotes() 
-                    );
-
-                    udp.getSemaforoDasVarsDeTimeout().acquire();
-
-                    udp.adicioneTimeout( 
-                        udp.getProxNumDaSequenciaDePacotes(),
-                        pacoteParaEnvio
-                    );
-
-                    udp.getSemaforoDasVarsDeTimeout().release();
-
-                    udp.incrementeProxNumDaSequenciaDePacotes();
-
-                    udp.getSemaforoDasVarsDeJanela().release();
-
+                    if ( udp.getProxNumDaSequenciaDePacotes() != 0 ) 
+                    {
+                        continue;
+                    }
+                    
                 }
 
-                sleep( 1 );
+                if (
+                    ! udp.existemPacotesEmTimeout()
+                ) {
+                    udp.incrementeJanelaDeCongestionamento();
 
+                    udp.configureBaseDaJanelaDeCongestionamento( 
+                        udp.getProxNumDaSequenciaDePacotes(),
+                        udp.getJanelaDeCongestionamento()
+                    );
+                }
+    
+                System.out.println( 
+                    udp.getDenominacao() 
+                    + ": ------------------------------------------ INICIO DE JANELA "
+                    + udp.getJanelaDeCongestionamento()
+                );
+
+                for ( 
+                    int i = udp.getBaseDaJanelaDeCongestionamento(); 
+                    i < udp.getBaseDaJanelaDeCongestionamento() + udp.getJanelaDeCongestionamento(); 
+                    i++
+                ) {
+
+                    if ( udp.existemPacotesEmTimeout() )
+                    {
+
+                        udp.reduzaJanelaDeCongestionamento();
+    
+                        Entry<Integer, byte[]> pacote = udp.obterPacoteEmTimeout();
+    
+                        udp.enviePacote( pacote.getValue() );
+    
+                        System.out.println( 
+                            udp.getDenominacao()
+                            + ": Re-envio do pacote em timeout " 
+                            + pacote.getKey()
+                        );
+    
+                        udp.adicioneTimeout( 
+                            pacote.getKey(),
+                            pacote.getValue()
+                        );
+    
+                    }
+                    else if (
+                        ! this.acabouCriacaoDePacotes
+                        && udp.getProxNumDaSequenciaDePacotes()
+                        < udp.getBaseDeEnvio() + udp.getTamanhoDeJanelaDePacotes()
+                    )
+                    {
+    
+                        byte[] pacoteParaEnvio = preparePacote( streamDaMensagem );
+    
+                        udp.enviePacote( pacoteParaEnvio );
+    
+                        System.out.println( 
+                            udp.getDenominacao() 
+                            + ": Envio do pacote " 
+                            + udp.getProxNumDaSequenciaDePacotes() 
+                        );
+    
+                        udp.adicioneTimeout( 
+                            udp.getProxNumDaSequenciaDePacotes(),
+                            pacoteParaEnvio
+                        );
+    
+                        udp.incrementeProxNumDaSequenciaDePacotes();
+    
+                    }
+                    
+                }
+    
+                System.out.println( 
+                    udp.getDenominacao() 
+                    + ": ------------------------------------------ FIM DE JANELA"
+                );
+
+                sleep( 1 );
+                
             }
 
         } 

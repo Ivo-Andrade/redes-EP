@@ -18,7 +18,7 @@ public class MaquinaServidor
 
     private int atrasoDePropagacao;
     private int atrasoDeTransmissao;
-    private int probabilidadeDePerda;
+    private double probabilidadeDePerda;
 
     public MaquinaServidor (
         EnderecoDeMaquina servidor,
@@ -49,7 +49,7 @@ public class MaquinaServidor
         this.atrasoDeTransmissao = atrasoDeTransmissao;
     }
 
-    public void setProbabilidadeDePerda( int probabilidadeDePerda ) 
+    public void setProbabilidadeDePerda( double probabilidadeDePerda ) 
     {
         this.probabilidadeDePerda = probabilidadeDePerda;
     }

@@ -19,8 +19,16 @@ public class SimulacaoBase
         // Definições gerais de váriaveis
 
         int tamanhoDoPacote = 1000;
-        int tamanhoDaFilaDePacotesNoRoteador = Integer.MAX_VALUE ;
-        int tamanhoDoBufferDeRecepcaoNoServidor = Integer.MAX_VALUE;
+        int tempoDeTimeoutDoCliente = 1000;
+
+        // Nota: Valor máximo recomendado de 1000 pacotes, 
+        //      dado que se mantem uma lista de status de ACK com este valor
+        //      definindo seu tamamnho
+        int tamanhoDaFilaDePacotesNoCliente = ( 1000 );
+
+        int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
+        int tamanhoDoBufferDeRecepcaoNoServidor = ( Integer.MAX_VALUE );
+
         int atrasoDeRecepcaoNoServidor = 0;
 
         // Definição de endereços
@@ -60,9 +68,9 @@ public class SimulacaoBase
         atrasosDeTransmissao.put( 0, 0 );
         atrasosDeTransmissao.put( 1, 0 );
 
-        SortedMap<Integer,Integer> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0 );
-        probabilidadesDePerda.put( 1, 0 );
+        SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
+        probabilidadesDePerda.put( 0, 0.0 );
+        probabilidadesDePerda.put( 1, 0.0 );
 
         // Definição de máquinas
         
@@ -83,7 +91,7 @@ public class SimulacaoBase
 
         maquinaServidor.run();
 
-        Thread.sleep( 1000 );
+        Thread.sleep( 100 );
 
         MaquinaRoteador maquinaRoteador = 
             new MaquinaRoteador(
@@ -100,7 +108,7 @@ public class SimulacaoBase
 
         maquinaRoteador.run();
 
-        Thread.sleep( 1000 );
+        Thread.sleep( 100 );
 
         MaquinaCliente maquinaCliente = 
             new MaquinaCliente(
@@ -109,6 +117,9 @@ public class SimulacaoBase
                 roteador,
                 1000000
             );
+
+        maquinaCliente.setTamanhoDeJanelaDePacotes( tamanhoDaFilaDePacotesNoCliente );
+        maquinaCliente.setTempoDeTimeout( tempoDeTimeoutDoCliente );
 
         maquinaCliente.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
         maquinaCliente.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 1 ) );

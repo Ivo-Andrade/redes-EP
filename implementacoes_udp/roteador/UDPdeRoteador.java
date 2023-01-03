@@ -24,7 +24,7 @@ public class UDPdeRoteador
 
     private final SortedMap<Integer,Integer> atrasosDePropagacao;
     private final SortedMap<Integer,Integer> atrasosDeTransmissao;
-    private final SortedMap<Integer,Integer> probabilidadesDePerda;
+    private final SortedMap<Integer,Double> probabilidadesDePerda;
 
     private LinkedList<DatagramPacket> bufferDePacotes;
 
@@ -44,7 +44,7 @@ public class UDPdeRoteador
         SortedMap<Integer,EnderecoDeMaquina> clientes,
         SortedMap<Integer,Integer> atrasosDePropagacao,
         SortedMap<Integer,Integer> atrasosDeTransmissao,
-        SortedMap<Integer,Integer> probabilidadesDePerda
+        SortedMap<Integer,Double> probabilidadesDePerda
     )
         throws Exception
     {
@@ -106,7 +106,7 @@ public class UDPdeRoteador
         return this.roteador.getEnderecoIP();
     }
 
-    public String getNomeDoServidor() 
+    String getNomeDoServidor() 
     {
         return this.servidor.getNome();
     }
@@ -137,12 +137,12 @@ public class UDPdeRoteador
      * 
      */
 
-    public boolean existePacotesNoBuffer() 
+    boolean existePacotesNoBuffer() 
     {
         return ( this.bufferDePacotes.size() > 0 );
     }
 
-    public void adicionarPacoteAoBuffer( DatagramPacket pacote ) 
+    void adicionarPacoteAoBuffer( DatagramPacket pacote ) 
     {
         if ( this.bufferDePacotes.size() < this.tamanhoDaFilaDePacotes )
         {
@@ -150,7 +150,7 @@ public class UDPdeRoteador
         }
     }
 
-    public DatagramPacket removerPacoteDoBuffer ()
+    DatagramPacket removerPacoteDoBuffer ()
         throws Exception
     {
         if ( this.bufferDePacotes.size() > 0 )
@@ -167,7 +167,7 @@ public class UDPdeRoteador
         return null;
     }
 
-    public void enviePacoteAoCliente ( 
+    void enviePacoteAoCliente ( 
         int idDoCliente,
         byte[] pacoteParaCliente 
     )
@@ -188,7 +188,7 @@ public class UDPdeRoteador
 
     }
 
-    public void enviePacoteAoServidor( byte[] pacoteParaServidor )
+    void enviePacoteAoServidor( byte[] pacoteParaServidor )
         throws Exception
     {
                         

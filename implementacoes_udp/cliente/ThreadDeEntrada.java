@@ -49,9 +49,7 @@ public class ThreadDeEntrada
                         + numDeACK 
                 );
                 
-                udp.getSemaforoDasVarsDeTimeout().acquire();
                 udp.removeTimeoutTask( numDeACK );
-                udp.getSemaforoDasVarsDeTimeout().release();
 
                 if ( numDeACK == -2 )
                 {
@@ -59,11 +57,7 @@ public class ThreadDeEntrada
                 }
                 else if ( numDeACK != -1 )
                 {
-
-                    udp.getSemaforoDasVarsDeJanela().acquire();
                     udp.atualizarJanela( numDeACK );
-                    udp.getSemaforoDasVarsDeJanela().release();
-                    
                 }
 
             }
@@ -76,9 +70,19 @@ public class ThreadDeEntrada
         }
         finally
         {
+
             System.out.println( udp.getDenominacao() + ": Sequencia de pacotes enviada!" );
-            udp.esvaziarListaDeTimeouts();
+            
+            try {
+                udp.esvaziarListaDeTimeouts();
+            } 
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
+            
             udp.getSocket().close();
+
         }
 
     }

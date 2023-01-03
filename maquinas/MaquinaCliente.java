@@ -14,9 +14,12 @@ public class MaquinaCliente
 
     private final int bytesDaMensagem;
 
+    private int tamanhoDeJanelaDePacotes;
+    private int tempoDeTimeout;
+
     private int atrasoDePropagacao;
     private int atrasoDeTransmissao;
-    private int probabilidadeDePerda;
+    private double probabilidadeDePerda;
 
     public MaquinaCliente (
         int idDeCliente,
@@ -30,9 +33,22 @@ public class MaquinaCliente
         this.roteador = roteador;
         this.bytesDaMensagem = bytes;
 
+        this.tamanhoDeJanelaDePacotes = -1;
+        this.tempoDeTimeout = -1;
+
         this.atrasoDePropagacao = 0;
         this.atrasoDeTransmissao = 0;
         this.probabilidadeDePerda = 0;
+    }
+
+    public void setTamanhoDeJanelaDePacotes ( int tamanhoDeJanelaDePacotes ) 
+    {
+        this.tamanhoDeJanelaDePacotes = tamanhoDeJanelaDePacotes;
+    }
+
+    public void setTempoDeTimeout ( int tempoDeTimeout ) 
+    {
+        this.tempoDeTimeout = tempoDeTimeout;
     }
 
     public void setAtrasoDePropagacao ( int atrasoDePropagacao ) 
@@ -45,7 +61,7 @@ public class MaquinaCliente
         this.atrasoDeTransmissao = atrasoDeTransmissao;
     }
 
-    public void setProbabilidadeDePerda( int probabilidadeDePerda ) 
+    public void setProbabilidadeDePerda( double probabilidadeDePerda ) 
     {
         this.probabilidadeDePerda = probabilidadeDePerda;
     }
@@ -64,6 +80,16 @@ public class MaquinaCliente
                 mensagem,
                 roteador
             );
+
+        if ( this.tamanhoDeJanelaDePacotes > 0 )
+        {
+            udpDoCliente.setTamanhoDeJanelaDePacotes( this.tamanhoDeJanelaDePacotes );
+        }
+
+        if ( this.tamanhoDeJanelaDePacotes > 0 )
+        {
+            udpDoCliente.setTempoDeTimeout( this.tempoDeTimeout );
+        }
 
         udpDoCliente.setAtrasoDePropagacao( this.atrasoDePropagacao );
         udpDoCliente.setAtrasoDeTransmissao( this.atrasoDeTransmissao );

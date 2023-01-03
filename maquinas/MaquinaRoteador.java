@@ -13,7 +13,7 @@ public class MaquinaRoteador
     private final SortedMap<Integer,EnderecoDeMaquina> clientes;
     private final SortedMap<Integer,Integer> atrasosDePropagacao;
     private final SortedMap<Integer,Integer> atrasosDeTransmissao;
-    private final SortedMap<Integer,Integer> probabilidadeDePerdas;
+    private final SortedMap<Integer,Double> probabilidadesDePerda;
 
     private int tamanhoDoPacote;
     private int tamanhoDaFilaDePacotes;
@@ -24,7 +24,7 @@ public class MaquinaRoteador
         SortedMap<Integer,EnderecoDeMaquina> clientes,
         SortedMap<Integer,Integer> atrasosDePropagacao,
         SortedMap<Integer,Integer> atrasosDeTransmissao, 
-        SortedMap<Integer, Integer> probabilidadesDePerda
+        SortedMap<Integer,Double> probabilidadesDePerda
     )
     {
         this.servidor = servidor;
@@ -32,7 +32,7 @@ public class MaquinaRoteador
         this.clientes = clientes;
         this.atrasosDePropagacao = atrasosDePropagacao;
         this.atrasosDeTransmissao = atrasosDeTransmissao;
-        this.probabilidadeDePerdas = atrasosDeTransmissao;
+        this.probabilidadesDePerda = probabilidadesDePerda;
 
         this.tamanhoDoPacote = -1;
         this.tamanhoDaFilaDePacotes = -1;
@@ -60,7 +60,7 @@ public class MaquinaRoteador
                 clientes,
                 atrasosDePropagacao,
                 atrasosDeTransmissao,
-                probabilidadeDePerdas
+                probabilidadesDePerda
             );
 
         if ( this.tamanhoDoPacote > -1 )

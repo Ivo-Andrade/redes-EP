@@ -24,6 +24,7 @@ public class UDPdoServidor
     private DatagramSocket socket;
 
     private SortedMap<Integer,String> mensagensDosCliente;
+    private SortedMap<Integer,Integer> tamanhoDosBuffersDeMensagens;
     private SortedMap<Integer,SortedMap<Integer,String>> bufferDeMsgsRecebidasDosClientes;
 
     private int tamanhoDoPacote;
@@ -32,7 +33,7 @@ public class UDPdoServidor
     
     private int atrasoDePropagacao;
     private int atrasoDeTransmissao;
-    private int probabilidadeDePerda;
+    private double probabilidadeDePerda;
 
     private LinkedList<DatagramPacket> bufferDePacotes;
 
@@ -83,6 +84,7 @@ public class UDPdoServidor
 
         this.clientes = clientes;
 
+        this.tamanhoDosBuffersDeMensagens = new TreeMap<Integer,Integer>();
         this.mensagensDosCliente = new TreeMap<Integer,String>();
         this.bufferDeMsgsRecebidasDosClientes = new TreeMap<Integer,SortedMap<Integer,String>>();
 
@@ -121,7 +123,7 @@ public class UDPdoServidor
         this.atrasoDeTransmissao = atrasoDeTransmissao;
     }
 
-   public void setProbabilidadeDePerda ( int probabilidadeDePerda )
+   public void setProbabilidadeDePerda ( double probabilidadeDePerda )
     {
         this.probabilidadeDePerda = probabilidadeDePerda;
     }
@@ -187,11 +189,6 @@ public class UDPdoServidor
         return this.proxNumDaSequenciaDePacotes;
     }
 
-    int getProbabilidadeDePerda () 
-    {
-        return this.probabilidadeDePerda;
-    }
-
     boolean getATransferenciaTerminou () 
     {
         return this.aTransferenciaTerminou;
@@ -208,7 +205,7 @@ public class UDPdoServidor
      * 
      */
 
-    public void adicionarPacoteAoBuffer( DatagramPacket pacote )
+    void adicionarPacoteAoBuffer( DatagramPacket pacote )
         throws Exception
     {
         if ( this.bufferDePacotes.size() < tamanhoDoBufferDeRecepcao )
@@ -222,7 +219,7 @@ public class UDPdoServidor
         }
     }
 
-    public DatagramPacket removerPacoteDoBuffer ()
+    DatagramPacket removerPacoteDoBuffer ()
     {
         if ( this.bufferDePacotes.size() > 0 )
         {
@@ -259,7 +256,23 @@ public class UDPdoServidor
 
     }
 
-    public void salvarMensagem( int idDoCliente )
+    void salvarTamanhoDoBufferDeMensagem( int idDoCliente, int tamanhoDoBuffer )
+    {
+        this.tamanhoDosBuffersDeMensagens.put( idDoCliente, tamanhoDoBuffer );
+    }
+
+    boolean verificarBufferCompleto ( int idDoCliente ) 
+    {
+        if ( this.tamanhoDosBuffersDeMensagens.containsKey( idDoCliente ) )
+        {
+            return 
+                this.bufferDeMsgsRecebidasDosClientes.get( idDoCliente ).size() 
+                == this.tamanhoDosBuffersDeMensagens.get( idDoCliente );
+        }
+        else return false;
+    }
+
+    void salvarMensagem( int idDoCliente )
         throws Exception
     {
 

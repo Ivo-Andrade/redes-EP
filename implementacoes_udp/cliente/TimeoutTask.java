@@ -2,7 +2,7 @@ package implementacoes_udp.cliente;
 
 import java.util.TimerTask;
 
-public class ResubmissaoEmTimeoutTask
+public class TimeoutTask
     extends TimerTask
 {
 
@@ -10,7 +10,7 @@ public class ResubmissaoEmTimeoutTask
     private final int numPacote;
     private final byte[] pacote;
 
-    public ResubmissaoEmTimeoutTask (
+    public TimeoutTask (
         UDPdoCliente udp,
         int numPacote,
         byte[] pacote 
@@ -27,7 +27,7 @@ public class ResubmissaoEmTimeoutTask
         
         try 
         {
-            udp.reenviePacote( numPacote, pacote );
+            udp.adicionarNaListaDePacotesEmTimeout ( numPacote, pacote );
         } 
         catch ( Exception e ) 
         {
