@@ -1,5 +1,8 @@
 package implementacoes_udp.roteador;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -30,6 +33,9 @@ public class UDPdeRoteador
 
     private ThreadDeEntrada threadDeEntrada;
     private ThreadDeSaida threadDeSaida;
+
+    private long inicioDeFuncionamento;
+    private File outputDaFilaDeRoteador;
 
     /**
      * 
@@ -137,6 +143,67 @@ public class UDPdeRoteador
      * 
      */
 
+    void inicializarOutputFilaDoRoteador ()
+        throws Exception
+    {
+
+        for ( int i = 1; i < 100; i++ ) {
+
+            String path = 
+                "resultados" 
+                + File.separator 
+                + "filas_de_roteador" 
+                + File.separator 
+                + this.getDenominacao()
+                + "_"
+                + i
+                + ".txt";
+            
+            File f = new File( path );
+            if( ! f.exists() && ! f.isDirectory() ) { 
+
+                f.getParentFile().mkdirs();
+                f.createNewFile();
+
+                this.outputDaFilaDeRoteador = f;
+        
+                BufferedWriter writer = 
+                new BufferedWriter( 
+                    new FileWriter(
+                        new File ( path )
+                    ) 
+                );
+                writer.write( "Tempo (s),Tamanho da Fila\n" );
+                writer.write( "0,0\n" );
+                writer.close();
+
+                break;
+            }
+            
+        }
+        
+    }
+
+    void registrarOutputFilaDoRoteador ()
+    {
+
+        double tempoAtual = ( System.currentTimeMillis() - udp.getInicioDeTransmissao() ) / 1000 ;
+
+        FileWriter fw = new FileWriter( 
+            this.outputDaFilaDeRoteador.getAbsolutePath(), 
+            true
+        );
+        BufferedWriter bw = new BufferedWriter( fw );
+        bw.write(
+            tempoAtual 
+            + ","
+            + this.bufferDePacotes.size()
+        );
+        bw.newLine();
+        bw.close();
+
+    }
+
     boolean existePacotesNoBuffer() 
     {
         return ( this.bufferDePacotes.size() > 0 );
@@ -235,6 +302,9 @@ public class UDPdeRoteador
     
             this.threadDeSaida.start();
             this.threadDeEntrada.start();
+
+            this.inicioDeFuncionamento = System.currentTimeMillis();
+            inicializarOutputFilaDoRoteador();
 
             System.out.println( this.roteador.getNome() + ": Em funcionamento..." );
 

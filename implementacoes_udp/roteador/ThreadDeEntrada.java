@@ -43,6 +43,8 @@ public class ThreadDeEntrada
                     sleep( this.atrasosDePropagacao.get( idDoRemetente ) );
 
                     udp.adicionarPacoteAoBuffer( pacoteDeEntrada );
+
+                    udp.registrarOutputFilaDoRoteador();
                 }
 
             }

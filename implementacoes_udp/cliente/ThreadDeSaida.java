@@ -80,8 +80,6 @@ public class ThreadDeSaida
 
                     udp.reduzaJanelaDeCongestionamento();
 
-                    System.out.println( "RECUPERACAO RAPIDA - " + udp.getJanelaDeCongestionamento() );
-
                     Entry<Integer, byte[]> pacoteParaEnvio = udp.removerPacoteEmTimeout();
 
                     udp.enviePacote( pacoteParaEnvio.getValue() );
@@ -98,8 +96,6 @@ public class ThreadDeSaida
 
                     marcarRecuperacaoRapidaNoOutputDaJanelaDeCongestionamento();
 
-                    System.out.println( "RECUPERACAO RAPIDA - FIM " + pacoteParaEnvio.getKey() + " " + 1 );
-
                 }
                 else if ( udp.verificarACKdaJanelaDeCongestionamentoAnterior() )
                 {
@@ -108,8 +104,6 @@ public class ThreadDeSaida
                     {
                         udp.incrementeJanelaDeCongestionamento();
                     }
-
-                    System.out.println( "JANELA DE CONGESTIONAMENTO - " + udp.getJanelaDeCongestionamento() );
 
                     int base = udp.getProxNumDaSequenciaDePacotes();
                     int janelaAtual = -1;
@@ -160,8 +154,6 @@ public class ThreadDeSaida
                     udp.configureBaseDaJanelaDeCongestionamento( base, janelaAtual );
 
                     marcarTransmissaoNaJanelaDeCongestionamento( udp.getJanelaDeCongestionamento(), janelaAtual );
-    
-                    System.out.println( "JANELA DE CONGESTIONAMENTO - FIM - " + base + " " + janelaAtual );
 
                 }
 
@@ -230,7 +222,7 @@ public class ThreadDeSaida
         throws Exception 
     {
 
-        double tempoAtual = System.currentTimeMillis() - udp.getInicioDeTransmissao();
+        double tempoAtual = ( System.currentTimeMillis() - udp.getInicioDeTransmissao() ) / 1000 ;
 
         FileWriter fw = new FileWriter( 
             this.outputDaJanelaDeCongestionamento.getAbsolutePath(), 
@@ -253,7 +245,7 @@ public class ThreadDeSaida
         throws Exception 
     {
 
-        double tempoAtual = System.currentTimeMillis() - udp.getInicioDeTransmissao();
+        double tempoAtual = ( System.currentTimeMillis() - udp.getInicioDeTransmissao() ) / 1000;
 
         FileWriter fw = new FileWriter( 
             this.outputDaJanelaDeCongestionamento.getAbsolutePath(), 

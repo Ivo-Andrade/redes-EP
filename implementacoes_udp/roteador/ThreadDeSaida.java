@@ -30,6 +30,9 @@ public class ThreadDeSaida
 
                 if ( pacote != null ) 
                 {
+
+                    udp.registrarOutputFilaDoRoteador();
+                    
                     byte[] dadosDoPacote = Arrays.copyOfRange(
                         pacote.getData(), 
                         0, 
