@@ -9,7 +9,7 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase_SimpleClient_16
+public class SimulacaoAtrasoDePropagacao_ClienteSimples_128_1 
 {
 
     public static void main ( String[] args ) 
@@ -24,7 +24,7 @@ public class SimulacaoBase_SimpleClient_16
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 16 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 128 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
 
@@ -34,21 +34,21 @@ public class SimulacaoBase_SimpleClient_16
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_16-Servidor",
+                "SimulacaoAtrasoDePropagacao_ClienteSimples_128_1-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_16-Roteador",
+                "SimulacaoAtrasoDePropagacao_ClienteSimples_128_1-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
 
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_16-Cliente",
+                "SimulacaoAtrasoDePropagacao_ClienteSimples_128_1-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
@@ -59,8 +59,8 @@ public class SimulacaoBase_SimpleClient_16
         // Definição de variáveis
 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
-        atrasosDePropagacao.put( 0, 0 );
-        atrasosDePropagacao.put( 1, 0 );
+        atrasosDePropagacao.put( 0, 1 );
+        atrasosDePropagacao.put( 1, 1 );
 
         SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
         atrasosDeTransmissao.put( 0, 0 );

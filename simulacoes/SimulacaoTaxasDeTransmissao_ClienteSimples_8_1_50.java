@@ -9,7 +9,7 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase_SimpleClient_256
+public class SimulacaoTaxasDeTransmissao_ClienteSimples_8_1_50 
 {
 
     public static void main ( String[] args ) 
@@ -24,7 +24,7 @@ public class SimulacaoBase_SimpleClient_256
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 256 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 8 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
 
@@ -34,21 +34,21 @@ public class SimulacaoBase_SimpleClient_256
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_256-Servidor",
+                "SimulacaoTaxasDeTransmissao_ClienteSimples_8_1_50-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_256-Roteador",
+                "SimulacaoTaxasDeTransmissao_ClienteSimples_8_1_50-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
 
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_256-Cliente",
+                "SimulacaoTaxasDeTransmissao_ClienteSimples_8_1_50-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
@@ -63,8 +63,8 @@ public class SimulacaoBase_SimpleClient_256
         atrasosDePropagacao.put( 1, 0 );
 
         SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
-        atrasosDeTransmissao.put( 0, 0 );
-        atrasosDeTransmissao.put( 1, 0 );
+        atrasosDeTransmissao.put( 0, 1 );
+        atrasosDeTransmissao.put( 1, 50 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
         probabilidadesDePerda.put( 0, 0.0 );

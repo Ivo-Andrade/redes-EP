@@ -9,7 +9,7 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase_SimpleClient_8 
+public class SimulacaoRoteadorComFila_ClienteSimples_32_128 
 {
 
     public static void main ( String[] args ) 
@@ -24,9 +24,9 @@ public class SimulacaoBase_SimpleClient_8
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 8 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 32 );
 
-        int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
+        int tamanhoDaFilaDePacotesNoRoteador = ( 128 );
 
         int atrasoDeRecepcaoNoServidor = 0;
 
@@ -34,21 +34,21 @@ public class SimulacaoBase_SimpleClient_8
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_8-Servidor",
+                "SimulacaoRoteadorComFila_ClienteSimples_32_128-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_8-Roteador",
+                "SimulacaoRoteadorComFila_ClienteSimples_32_128-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
 
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient_8-Cliente",
+                "SimulacaoRoteadorComFila_ClienteSimples_32_128-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
@@ -67,8 +67,8 @@ public class SimulacaoBase_SimpleClient_8
         atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0.001 );
-        probabilidadesDePerda.put( 1, 0.001 );
+        probabilidadesDePerda.put( 0, 0.0 );
+        probabilidadesDePerda.put( 1, 0.0 );
 
         // Definição de máquinas
         

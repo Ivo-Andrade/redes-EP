@@ -363,7 +363,8 @@ public class UDPdoCliente
                     return false;
                 }
                 else if (
-                    numPacote == this.baseDaJanelaAnteriorDeCongestionamento
+                    ! this.existemPacotesEmTimeout()
+                    && numPacote == this.baseDaJanelaAnteriorDeCongestionamento
                 )
                 {
                     return true;

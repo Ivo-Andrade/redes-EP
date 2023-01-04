@@ -91,8 +91,6 @@ public class ThreadDeSaida
 
                     udp.adicionarTimeout( pacoteParaEnvio.getKey() , pacoteParaEnvio.getValue(), iteracao++ );
 
-                    udp.configureBaseDaJanelaDeCongestionamento( pacoteParaEnvio.getKey(), 1 );
-
                     marcarRecuperacaoRapidaNoOutputDaJanelaDeCongestionamento();
 
                 }
