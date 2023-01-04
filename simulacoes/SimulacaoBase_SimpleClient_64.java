@@ -9,7 +9,7 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase_DualClient 
+public class SimulacaoBase_SimpleClient_64
 {
 
     public static void main ( String[] args ) 
@@ -19,15 +19,14 @@ public class SimulacaoBase_DualClient
         // Definições gerais de váriaveis
 
         int tamanhoDoPacote = 1000;
-        int tempoDeTimeoutDoCliente = 300;
+        int tempoDeTimeoutDoCliente = 500;
 
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaFilaDePacotesNoCliente = ( 64 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 64 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
-        int tamanhoDoBufferDeRecepcaoNoServidor = ( Integer.MAX_VALUE );
 
         int atrasoDeRecepcaoNoServidor = 0;
 
@@ -35,52 +34,41 @@ public class SimulacaoBase_DualClient
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacaoBase_dualClient-Servidor",
+                "simulacaoBase_singleClient_64-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacaoBase_dualClient-Roteador",
+                "simulacaoBase_singleClient_64-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
-        
-        EnderecoDeMaquina cliente1 =
+
+        EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacaoBase_dualClient-Cliente_1",
+                "simulacaoBase_singleClient_64-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
 
-        EnderecoDeMaquina cliente2 =
-            new EnderecoDeMaquina(
-                "simulacaoBase_dualClient-Cliente_2",
-                InetAddress.getLocalHost(),
-                9222
-            );
-
         SortedMap<Integer,EnderecoDeMaquina> clientes = new TreeMap<>();
-        clientes.put( 1, cliente1 );
-        clientes.put( 2, cliente2 );
+        clientes.put( 1, cliente );
 
         // Definição de variáveis
 
         SortedMap<Integer,Integer> atrasosDePropagacao = new TreeMap<>();
         atrasosDePropagacao.put( 0, 0 );
         atrasosDePropagacao.put( 1, 0 );
-        atrasosDePropagacao.put( 2, 0 );
 
         SortedMap<Integer,Integer> atrasosDeTransmissao = new TreeMap<>();
-        atrasosDeTransmissao.put( 0, 1 );
-        atrasosDeTransmissao.put( 1, 1 );
-        atrasosDeTransmissao.put( 2, 1 );
+        atrasosDeTransmissao.put( 0, 0 );
+        atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
         probabilidadesDePerda.put( 0, 0.0 );
         probabilidadesDePerda.put( 1, 0.0 );
-        probabilidadesDePerda.put( 2, 0.0 );
 
         // Definição de máquinas
         
@@ -92,7 +80,7 @@ public class SimulacaoBase_DualClient
             );
 
         maquinaServidor.setTamanhoDoPacote( tamanhoDoPacote );
-        maquinaServidor.setTamanhoDaJanelaDeRepeticaoSeletiva( tamanhoDoBufferDeRecepcaoNoServidor );
+        maquinaServidor.setTamanhoDaJanelaDeRepeticaoSeletiva( tamanhoDaJanelaDeRepeticaoSeletiva );
         maquinaServidor.setAtrasoDeRecepcao( atrasoDeRecepcaoNoServidor );
 
         maquinaServidor.setAtrasoDePropagacao( atrasosDePropagacao.get( 0 ));
@@ -120,38 +108,22 @@ public class SimulacaoBase_DualClient
 
         Thread.sleep( 100 );
 
-        MaquinaCliente maquinaCliente1 = 
+        MaquinaCliente maquinaCliente = 
             new MaquinaCliente(
                 1,
-                cliente1,
+                cliente,
                 roteador,
-                100000
+                1000000
             );
 
-        maquinaCliente1.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaFilaDePacotesNoCliente );
-        maquinaCliente1.setTempoDeTimeout( tempoDeTimeoutDoCliente );
+        maquinaCliente.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaJanelaDeRepeticaoSeletiva );
+        maquinaCliente.setTempoDeTimeout( tempoDeTimeoutDoCliente );
 
-        maquinaCliente1.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
-        maquinaCliente1.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 1 ) );
-        maquinaCliente1.setProbabilidadeDePerda( probabilidadesDePerda.get( 1 ) );
+        maquinaCliente.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
+        maquinaCliente.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 1 ) );
+        maquinaCliente.setProbabilidadeDePerda( probabilidadesDePerda.get( 1 ) );
 
-        MaquinaCliente maquinaCliente2 = 
-            new MaquinaCliente(
-                2,
-                cliente2,
-                roteador,
-                100000
-            );
-
-        maquinaCliente2.setTamanhoDeJanelaDeRepeticaoSeletiva( tamanhoDaFilaDePacotesNoCliente );
-        maquinaCliente2.setTempoDeTimeout( tempoDeTimeoutDoCliente );
-
-        maquinaCliente2.setAtrasoDePropagacao( atrasosDePropagacao.get( 1 ));
-        maquinaCliente2.setAtrasoDeTransmissao( atrasosDeTransmissao.get( 1 ) );
-        maquinaCliente2.setProbabilidadeDePerda( probabilidadesDePerda.get( 1 ) );
-
-        maquinaCliente1.run();
-        maquinaCliente2.run();
+        maquinaCliente.run();
    
     }
     

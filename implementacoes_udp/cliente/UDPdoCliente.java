@@ -48,6 +48,7 @@ public class UDPdoCliente
 
     private Semaphore semaforoDeReenvios;
     private SortedMap<Integer, byte[]> pacotesEmTimeout;
+    private SortedMap<Integer, Integer> iteracaoDoTimeout;
     
     private Semaphore semaforoDeCongestionamento;
     private int baseDaJanelaDeCongestionamento;
@@ -119,6 +120,7 @@ public class UDPdoCliente
 
         this.semaforoDeReenvios = new Semaphore( 1 );
         this.pacotesEmTimeout = new TreeMap<Integer,byte[]>();
+        this.iteracaoDoTimeout = new TreeMap<Integer,Integer>();
 
         this.semaforoDeCongestionamento = new Semaphore( 1 );
         this.baseDaJanelaDeCongestionamento = 0;
@@ -361,6 +363,12 @@ public class UDPdoCliente
                     return false;
                 }
                 else if (
+                    numPacote == this.baseDaJanelaAnteriorDeCongestionamento
+                )
+                {
+                    return true;
+                }
+                else if (
                     numPacote >= this.baseDaJanelaAnteriorDeCongestionamento
                     && this.listaDeACKdePacotes.get( numPacote ) == true 
                 )
@@ -437,7 +445,8 @@ public class UDPdoCliente
 
     }
 
-    SortedMap.Entry<Integer, byte[]> removerPacoteEmTimeout () {
+    SortedMap.Entry<Integer, byte[]> removerPacoteEmTimeout () 
+    {
         int numPacote = this.pacotesEmTimeout.firstKey();
         byte[] pacote = this.pacotesEmTimeout.remove( numPacote );
         return new AbstractMap.SimpleEntry<Integer, byte[]>(
@@ -446,22 +455,29 @@ public class UDPdoCliente
         );
     }
 
+    int removerIteracaoDeTimeout ( int numDoPacote ) 
+    {
+        return this.iteracaoDoTimeout.remove( numDoPacote );
+    }
+    
     boolean existemPacotesEmTimeout () {
         return this.pacotesEmTimeout.size() > 0;
     }
 
-    void adicionarPacoteEmTimeout( int numPacote, byte[] pacote ) 
+    void adicionarPacoteEmTimeout( int numPacote, byte[] pacote, int iteracao ) 
     {
         this.pacotesEmTimeout.put( numPacote, pacote );
+        this.iteracaoDoTimeout.put( numPacote, iteracao );
     }
 
-    void adicionarTimeout ( int numDoPacote, byte[] pacote )
+    void adicionarTimeout ( int numDoPacote, byte[] pacote, int iteracao )
         throws Exception
     {
 
         Timer timer = new Timer();
-        TimerTask task = new TimeoutTask( this, numDoPacote, pacote );
-        timer.schedule( task, this.tempoDeTimeoutDePacote );
+        TimerTask task = new TimeoutTask( this, numDoPacote, pacote, iteracao );
+        int timeout = this.tempoDeTimeoutDePacote * iteracao;
+        timer.schedule( task, timeout );
 
         this.listaDeTimerTasksCorrentes.put( numDoPacote, task );
         this.listaDeTimersCorrentes.put( numDoPacote, timer );

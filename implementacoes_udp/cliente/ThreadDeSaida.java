@@ -5,9 +5,6 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-// import java.io.File;
-// import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Locale;
@@ -79,9 +76,10 @@ public class ThreadDeSaida
                 if ( udp.existemPacotesEmTimeout() )
                 {
 
-                    udp.reduzaJanelaDeCongestionamento();
+                    udp.reduzaJanelaDeCongestionamento();                    
 
                     Entry<Integer, byte[]> pacoteParaEnvio = udp.removerPacoteEmTimeout();
+                    int iteracao = udp.removerIteracaoDeTimeout( pacoteParaEnvio.getKey() );
 
                     udp.enviePacote( pacoteParaEnvio.getValue() );
 
@@ -91,7 +89,7 @@ public class ThreadDeSaida
                         + pacoteParaEnvio.getKey() 
                     );
 
-                    udp.adicionarTimeout( pacoteParaEnvio.getKey() , pacoteParaEnvio.getValue() );
+                    udp.adicionarTimeout( pacoteParaEnvio.getKey() , pacoteParaEnvio.getValue(), iteracao++ );
 
                     udp.configureBaseDaJanelaDeCongestionamento( pacoteParaEnvio.getKey(), 1 );
 
@@ -134,7 +132,7 @@ public class ThreadDeSaida
     
                             udp.adicionarACKaReceber( udp.getProxNumDaSequenciaDePacotes() );
     
-                            udp.adicionarTimeout( udp.getProxNumDaSequenciaDePacotes() , pacoteParaEnvio );
+                            udp.adicionarTimeout( udp.getProxNumDaSequenciaDePacotes() , pacoteParaEnvio, 1 );
     
                             udp.incrementeProxNumDaSequenciaDePacotes();
     

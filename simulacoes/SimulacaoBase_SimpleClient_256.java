@@ -9,7 +9,7 @@ import maquinas.MaquinaRoteador;
 import maquinas.MaquinaServidor;
 import modelos.EnderecoDeMaquina;
 
-public class SimulacaoBase_SingleClient 
+public class SimulacaoBase_SimpleClient_256
 {
 
     public static void main ( String[] args ) 
@@ -24,7 +24,7 @@ public class SimulacaoBase_SingleClient
         // Nota: Valor máximo recomendado de 1024 pacotes, 
         //      dado que se mantem uma lista de status de ACK com este valor
         //      definindo seu tamamnho
-        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 64 );
+        int tamanhoDaJanelaDeRepeticaoSeletiva = ( 256 );
 
         int tamanhoDaFilaDePacotesNoRoteador = ( Integer.MAX_VALUE );
 
@@ -34,21 +34,21 @@ public class SimulacaoBase_SingleClient
 
         EnderecoDeMaquina servidor = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient-Servidor",
+                "simulacaoBase_singleClient_256-Servidor",
                 InetAddress.getLocalHost(),
                 9999
             );
 
         EnderecoDeMaquina roteador = 
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient-Roteador",
+                "simulacaoBase_singleClient_256-Roteador",
                 InetAddress.getLocalHost(),
                 9555
             );
 
         EnderecoDeMaquina cliente =
             new EnderecoDeMaquina(
-                "simulacaoBase_singleClient-Cliente",
+                "simulacaoBase_singleClient_256-Cliente",
                 InetAddress.getLocalHost(),
                 9111
             );
@@ -67,8 +67,8 @@ public class SimulacaoBase_SingleClient
         atrasosDeTransmissao.put( 1, 0 );
 
         SortedMap<Integer,Double> probabilidadesDePerda = new TreeMap<>();
-        probabilidadesDePerda.put( 0, 0.1 );
-        probabilidadesDePerda.put( 1, 0.1 );
+        probabilidadesDePerda.put( 0, 0.0 );
+        probabilidadesDePerda.put( 1, 0.0 );
 
         // Definição de máquinas
         

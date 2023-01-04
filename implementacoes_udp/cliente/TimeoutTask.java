@@ -9,16 +9,19 @@ public class TimeoutTask
     private final UDPdoCliente udp;
     private final int numPacote;
     private final byte[] pacote;
+    private final int iteracao;
 
     public TimeoutTask (
         UDPdoCliente udp,
         int numPacote,
-        byte[] pacote 
+        byte[] pacote,
+        int iteracao
     )
     {
         this.udp = udp;
         this.numPacote = numPacote;
         this.pacote = pacote;
+        this.iteracao = iteracao;
     }
 
     @Override
@@ -28,7 +31,7 @@ public class TimeoutTask
         try 
         {
             udp.getSemaforoDeReenvios().acquire();
-            udp.adicionarPacoteEmTimeout( numPacote, pacote );
+            udp.adicionarPacoteEmTimeout( numPacote, pacote, iteracao );
             udp.getSemaforoDeReenvios().release();
         } 
         catch ( Exception e ) 
